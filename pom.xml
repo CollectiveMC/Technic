@@ -96,15 +96,15 @@
 	</profiles>
 	<repositories>
 		<repository>
-			<id>releases</id>
-			<url>http://nexus.cyberpwn.org/content/groups/public/</url>
+			<id>phantom</id>
+			<url>https://raw.githubusercontent.com/PhantomAPI/Phantom/master/repository/</url>
 		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.cyberpwn</groupId>
 			<artifactId>phantom</artifactId>
-			<version>P2</version>
+			<version>P5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.spigotmc</groupId>
