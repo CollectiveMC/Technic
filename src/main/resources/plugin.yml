@@ -1,0 +1,4 @@
+main: org.cyberpwn.technic.Technic
+version: ${project.version}
+name: Technic
+depend: [Phantom, SilkSpawners]
