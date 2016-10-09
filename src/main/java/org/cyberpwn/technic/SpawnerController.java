@@ -50,7 +50,7 @@ public class SpawnerController extends ConfigurableController
 	public int levels = 5;
 	
 	@Keyed("spawner.interval")
-	public double interval = 0.25;
+	public double interval = 0.5;
 	
 	@Keyed("spawner.price-node")
 	public String node = "shop";
