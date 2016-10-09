@@ -16,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.phantomapi.clust.ConfigurableController;
 import org.phantomapi.clust.Keyed;
 import org.phantomapi.construct.Controllable;
+import org.phantomapi.construct.ControllerMessage;
 import org.phantomapi.construct.Ticked;
 import org.phantomapi.core.SyncStart;
 import org.phantomapi.event.NestChunkLoadEvent;
@@ -37,6 +38,8 @@ import org.phantomapi.util.C;
 import org.phantomapi.util.F;
 import org.phantomapi.util.M;
 import org.phantomapi.vfx.ParticleEffect;
+import org.phantomapi.world.MaterialBlock;
+import com.earth2me.essentials.craftbukkit.SetExpFix;
 import de.dustplanet.util.SilkUtil;
 
 @Ticked(0)
@@ -48,6 +51,12 @@ public class SpawnerController extends ConfigurableController
 	
 	@Keyed("spawner.interval")
 	public double interval = 0.25;
+	
+	@Keyed("spawner.price-node")
+	public String node = "shop";
+	
+	@Keyed("spawner.default-mult")
+	public double defaultMultiplier = 8000;
 	
 	private SilkUtil s;
 	private GList<Block> mapped;
@@ -129,6 +138,39 @@ public class SpawnerController extends ConfigurableController
 		{
 			Nest.getBlock(block).set("t.s.v", value);
 		}
+	}
+	
+	public double getValue(Block block)
+	{
+		Double result = null;
+		
+		try
+		{
+			MaterialBlock mb = new MaterialBlock(Material.MOB_SPAWNER, (byte) s.getSpawnerEntityID(block));
+			ControllerMessage message = new ControllerMessage(this);
+			message.set("value", mb.getMaterial() + ":" + mb.getData());
+			message.set("shop", node);
+			
+			ControllerMessage response = sendMessage("CurrencyShops", message);
+			
+			if(response.contains("result"))
+			{
+				result = response.getDouble("result");
+			}
+		}
+		
+		catch(Exception e)
+		{
+			
+		}
+		
+		if(result == null)
+		{
+			f("Failed to find node in shop");
+			result = defaultMultiplier;
+		}
+		
+		return result;
 	}
 	
 	@EventHandler
@@ -254,7 +296,7 @@ public class SpawnerController extends ConfigurableController
 		{
 			short id = s.getSpawnerEntityID(e.getClickedBlock());
 			String name = s.getCreatureName(id);
-			Window w = new PhantomWindow(C.DARK_RED + name + " Accelerator", e.getPlayer());
+			Window w = new PhantomWindow(C.DARK_RED + name + " Accelerator" + C.DARK_GRAY + " (" + F.pc(rate + 1.0) + ")", e.getPlayer());
 			
 			for(int i = 0; i < levels; i++)
 			{
@@ -262,22 +304,38 @@ public class SpawnerController extends ConfigurableController
 				
 				if(rate < speed)
 				{
+					int cost = (int) (getValue(e.getClickedBlock()) * speed);
+					int xp = SetExpFix.getTotalExperience(e.getPlayer());
+					
 					Element element = new PhantomElement(new ItemStack(Material.MOB_SPAWNER), new Slot(0, 2))
 					{
 						@Override
 						public void onClick(Player p, Click c, Window w)
 						{
-							setSpeed(e.getClickedBlock(), speed);
-							okm(e);
+							if(xp >= cost)
+							{
+								SetExpFix.setTotalExperience(p, xp - cost);
+								setSpeed(e.getClickedBlock(), speed);
+								Audio a = new Audio();
+								a.add(new GSound(Sound.CLICK, 1f, (float) ((speed / (interval * levels)) * 1.8)));
+								a.play(p);
+								p.sendMessage(C.RED + "Spawner is now " + F.pc(speed) + " faster");
+								w.close();
+							}
 							
-							Audio a = new Audio();
-							a.add(new GSound(Sound.CLICK, 1f, (float) ((speed / (interval * levels)) * 1.8)));
-							a.play(p);
-							p.sendMessage(C.RED + "Spawner is now " + F.pc(speed) + " faster");
+							else
+							{
+								Audio a = new Audio();
+								a.add(new GSound(Sound.WOOD_CLICK, 1f, (float) ((speed / (interval * levels)) * 1.8)));
+								a.play(p);
+							}
 						}
 					};
 					
 					element.setTitle(C.GOLD + "+ " + F.pc(speed) + " overclock");
+					element.addText(C.GOLD + "This means this spawner will spawn " + (1.0 + speed) + "x speed");
+					element.addText((xp >= cost ? C.GREEN : C.RED) + "Costs: " + F.f(cost) + " XP");
+					
 					w.addElement(element);
 					break;
 				}
