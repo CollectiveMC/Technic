@@ -34,7 +34,6 @@ import org.phantomapi.gui.Window;
 import org.phantomapi.lang.GList;
 import org.phantomapi.lang.GListAdapter;
 import org.phantomapi.lang.GLocation;
-import org.phantomapi.lang.GMap;
 import org.phantomapi.lang.GSound;
 import org.phantomapi.nest.Nest;
 import org.phantomapi.sfx.Audio;
@@ -65,8 +64,6 @@ public class SpawnerController extends ConfigurableController
 	
 	private SilkUtil s;
 	private GList<Block> mapped;
-	private GMap<Player, Block> bm;
-	private GMap<Player, Integer> vm;
 	
 	public SpawnerController(Controllable parentController)
 	{
@@ -74,8 +71,6 @@ public class SpawnerController extends ConfigurableController
 		
 		s = SilkUtil.hookIntoSilkSpanwers();
 		mapped = new GList<Block>();
-		bm = new GMap<Player, Block>();
-		vm = new GMap<Player, Integer>();
 	}
 	
 	@Override
