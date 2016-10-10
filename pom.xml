@@ -99,6 +99,10 @@
 			<id>phantom</id>
 			<url>https://raw.githubusercontent.com/PhantomAPI/Phantom/master/repository/</url>
 		</repository>
+		<repository>
+			<id>global</id>
+			<url>http://nexus.cyberpwn.org/content/groups/public/</url>
+		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
@@ -112,18 +116,14 @@
 			<version>1.8.8-R0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>Essentialsx</groupId>
-			<artifactId>essx</artifactId>
-			<scope>system</scope>
-			<systemPath>${req.lib}/EssentialsX-2.0.1_b421.jar</systemPath>
-			<version>1.8.8</version>
+			<groupId>org.cyberpwn</groupId>
+			<artifactId>essentials</artifactId>
+			<version>1.0</version>
 		</dependency>
 		<dependency>
-			<groupId>SilkSpawners</groupId>
-			<artifactId>essxs</artifactId>
-			<scope>system</scope>
-			<systemPath>${req.lib}/SilkSpawners.jar</systemPath>
-			<version>1.8.8</version>
+			<groupId>org.cyberpwn</groupId>
+			<artifactId>silkspawners</artifactId>
+			<version>1.0</version>
 		</dependency>
 	</dependencies>
 </project>
