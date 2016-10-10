@@ -103,6 +103,10 @@
 			<id>global</id>
 			<url>http://nexus.cyberpwn.org/content/groups/public/</url>
 		</repository>
+		<repository>
+			<id>phantom</id>
+			<url>https://raw.githubusercontent.com/PhantomAPI/Phantom/master/repository/</url>
+		</repository>
 	</repositories>
 	<dependencies>
 		<dependency>
