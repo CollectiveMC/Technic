@@ -1,10 +1,13 @@
 package org.cyberpwn.technic;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -14,6 +17,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.phantomapi.clust.ConfigurableController;
+import org.phantomapi.clust.DataCluster;
 import org.phantomapi.clust.Keyed;
 import org.phantomapi.construct.Controllable;
 import org.phantomapi.construct.ControllerMessage;
@@ -30,6 +34,7 @@ import org.phantomapi.gui.Window;
 import org.phantomapi.lang.GList;
 import org.phantomapi.lang.GListAdapter;
 import org.phantomapi.lang.GLocation;
+import org.phantomapi.lang.GMap;
 import org.phantomapi.lang.GSound;
 import org.phantomapi.nest.Nest;
 import org.phantomapi.sfx.Audio;
@@ -60,6 +65,8 @@ public class SpawnerController extends ConfigurableController
 	
 	private SilkUtil s;
 	private GList<Block> mapped;
+	private GMap<Player, Block> bm;
+	private GMap<Player, Integer> vm;
 	
 	public SpawnerController(Controllable parentController)
 	{
@@ -67,6 +74,8 @@ public class SpawnerController extends ConfigurableController
 		
 		s = SilkUtil.hookIntoSilkSpanwers();
 		mapped = new GList<Block>();
+		bm = new GMap<Player, Block>();
+		vm = new GMap<Player, Integer>();
 	}
 	
 	@Override
@@ -249,6 +258,53 @@ public class SpawnerController extends ConfigurableController
 	{
 		if(e.getBlock().getType().equals(Material.MOB_SPAWNER))
 		{
+			boolean b = false;
+			int xp = SetExpFix.getTotalExperience(e.getPlayer());
+			int cost = (int) (0.25 * ((getSpeed(e.getBlock()) + 1.0) * getPrice(e.getBlock())));
+			
+			if(xp >= cost)
+			{
+				ItemStack is = e.getPlayer().getItemInHand();
+				
+				if(is != null && is.getEnchantments().containsKey(Enchantment.SILK_TOUCH))
+				{
+					SetExpFix.setTotalExperience(e.getPlayer(), xp - cost);
+					b = true;
+					e.getPlayer().sendMessage(C.RED + "Mined for " + F.f(cost) + "xp");
+				}
+				
+				else
+				{
+					return;
+				}
+			}
+			
+			else
+			{
+				DataCluster dc = Nest.getBlock(e.getBlock()).copy();
+				e.getPlayer().sendMessage(C.RED + "You need " + F.f(cost) + "xp to mine this.");
+				e.setCancelled(true);
+				
+				
+				new TaskLater()
+				{
+					@Override
+					public void run()
+					{
+						Nest.getBlock(e.getBlock()).setData(dc.getData());
+						Nest.getBlock(e.getBlock()).set("s", true);
+					}
+				};
+				
+				return;
+			}
+			
+			if(!b)
+			{
+				e.setCancelled(true);
+				return;
+			}
+			
 			if(Nest.getBlock(e.getBlock()).contains("t.s.v"))
 			{
 				double v = getSpeed(e.getBlock());
@@ -266,6 +322,33 @@ public class SpawnerController extends ConfigurableController
 					ItemMeta im = is.getItemMeta();
 					im.setDisplayName(title);
 					im.setLore(new GList<String>().qadd(lore));
+					is.setItemMeta(im);
+					e.getBlock().setType(Material.AIR);
+					
+					if(e.getPlayer().getGameMode().equals(GameMode.SURVIVAL) && s.isValidItemAndHasSilkTouch(e.getPlayer().getItemInHand()))
+					{
+						new TaskLater()
+						{
+							@Override
+							public void run()
+							{
+								e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), is);
+							}
+						};
+					}
+				}
+				
+				else
+				{
+					short id = s.getSpawnerEntityID(e.getBlock());
+					String name = s.getCreatureName(id);
+					mapped.remove(e.getBlock());
+					Nest.getBlock(e.getBlock()).remove("t.s.v");
+					e.setCancelled(true);
+					String title = C.YELLOW + name + " " + C.WHITE + "Spawner";
+					ItemStack is = s.newSpawnerItem(id, name);
+					ItemMeta im = is.getItemMeta();
+					im.setDisplayName(title);
 					is.setItemMeta(im);
 					e.getBlock().setType(Material.AIR);
 					
@@ -368,5 +451,33 @@ public class SpawnerController extends ConfigurableController
 		{
 			
 		}
+	}
+	
+	public int getPrice(Block b)
+	{
+		Double value = 0.0;
+		Block bx = new Location(Bukkit.getWorld(b.getWorld().getName()), b.getX(), b.getY(), b.getZ()).getBlock();
+		MaterialBlock mb = new MaterialBlock(Material.MOB_SPAWNER, (byte) s.getSpawnerEntityID(bx));
+		
+		try
+		{
+			ControllerMessage message = new ControllerMessage(this);
+			message.set("value", mb.getMaterial() + ":" + mb.getData());
+			message.set("shop", node);
+			
+			ControllerMessage response = sendMessage("CurrencyShops", message);
+			
+			if(response.contains("result"))
+			{
+				value = response.getDouble("result");
+			}
+		}
+		
+		catch(Exception e)
+		{
+			
+		}
+		
+		return value.intValue();
 	}
 }
