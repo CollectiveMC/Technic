@@ -6,22 +6,25 @@ import org.phantomapi.construct.Controller;
 public class TechnicController extends Controller
 {
 	private SpawnerController spawnerController;
+	private MultiblockController multiblockController;
 	
 	public TechnicController(Controllable parentController)
 	{
 		super(parentController);
 		
-		this.spawnerController = new SpawnerController(this);
+		multiblockController = new MultiblockController(this);
+		spawnerController = new SpawnerController(this);
 		
 		register(spawnerController);
+		register(multiblockController);
 	}
-
+	
 	@Override
 	public void onStart()
 	{
 		
 	}
-
+	
 	@Override
 	public void onStop()
 	{
