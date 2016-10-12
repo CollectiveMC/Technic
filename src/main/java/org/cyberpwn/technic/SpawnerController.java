@@ -23,6 +23,8 @@ import org.phantomapi.construct.Controllable;
 import org.phantomapi.construct.ControllerMessage;
 import org.phantomapi.construct.Ticked;
 import org.phantomapi.core.SyncStart;
+import org.phantomapi.currency.Transaction;
+import org.phantomapi.currency.VaultCurrency;
 import org.phantomapi.event.NestChunkLoadEvent;
 import org.phantomapi.event.NestChunkUnloadEvent;
 import org.phantomapi.gui.Click;
@@ -43,7 +45,6 @@ import org.phantomapi.util.F;
 import org.phantomapi.util.M;
 import org.phantomapi.vfx.ParticleEffect;
 import org.phantomapi.world.MaterialBlock;
-import com.earth2me.essentials.craftbukkit.SetExpFix;
 import de.dustplanet.util.SilkUtil;
 
 @Ticked(0)
@@ -90,6 +91,12 @@ public class SpawnerController extends ConfigurableController
 	{
 		for(Block i : mapped.copy())
 		{
+			if(Nest.getChunk(i.getChunk()) == null)
+			{
+				mapped.remove(i);
+				continue;
+			}
+			
 			if(Nest.getBlock(i) == null)
 			{
 				mapped.remove(i);
@@ -227,7 +234,7 @@ public class SpawnerController extends ConfigurableController
 						{
 							d = d.replaceAll("%", "").replaceAll("Boost: ", "");
 							Integer v = Integer.valueOf(d);
-							Double vv = ((double) v / 100.0);
+							Double vv = (double) v / 100.0;
 							Nest.getBlock(e.getBlock()).set("t.s.v", vv);
 							break;
 						}
@@ -254,7 +261,7 @@ public class SpawnerController extends ConfigurableController
 		if(e.getBlock().getType().equals(Material.MOB_SPAWNER))
 		{
 			boolean b = false;
-			int xp = SetExpFix.getTotalExperience(e.getPlayer());
+			int xp = (int) new VaultCurrency().get(e.getPlayer());
 			int cost = (int) (0.25 * ((getSpeed(e.getBlock()) + 1.0) * getPrice(e.getBlock())));
 			
 			if(xp >= cost)
@@ -263,9 +270,9 @@ public class SpawnerController extends ConfigurableController
 				
 				if(is != null && is.getEnchantments().containsKey(Enchantment.SILK_TOUCH))
 				{
-					SetExpFix.setTotalExperience(e.getPlayer(), xp - cost);
+					new Transaction(new VaultCurrency()).from(e.getPlayer()).amount((double) cost).commit();
 					b = true;
-					e.getPlayer().sendMessage(C.RED + "Mined for " + F.f(cost) + "xp");
+					e.getPlayer().sendMessage(C.RED + "Mined for " + F.f(cost) + "$");
 				}
 				
 				else
@@ -277,9 +284,8 @@ public class SpawnerController extends ConfigurableController
 			else
 			{
 				DataCluster dc = Nest.getBlock(e.getBlock()).copy();
-				e.getPlayer().sendMessage(C.RED + "You need " + F.f(cost) + "xp to mine this.");
+				e.getPlayer().sendMessage(C.RED + "You need " + F.f(cost) + "$ to mine this.");
 				e.setCancelled(true);
-				
 				
 				new TaskLater()
 				{
@@ -383,7 +389,7 @@ public class SpawnerController extends ConfigurableController
 				if(rate < speed)
 				{
 					int cost = (int) (getValue(e.getClickedBlock()) * speed);
-					int xp = SetExpFix.getTotalExperience(e.getPlayer());
+					int xp = (int) new VaultCurrency().get(e.getPlayer());
 					
 					Element element = new PhantomElement(new ItemStack(Material.MOB_SPAWNER), new Slot(0, 2))
 					{
@@ -392,10 +398,10 @@ public class SpawnerController extends ConfigurableController
 						{
 							if(xp >= cost)
 							{
-								SetExpFix.setTotalExperience(p, xp - cost);
+								new Transaction(new VaultCurrency()).from(p).amount((double) cost).commit();
 								setSpeed(e.getClickedBlock(), speed);
 								Audio a = new Audio();
-								a.add(new GSound(Sound.CLICK, 1f, (float) ((speed / (interval * levels)) * 1.8)));
+								a.add(new GSound(Sound.CLICK, 1f, (float) (speed / (interval * levels) * 1.8)));
 								a.play(p);
 								p.sendMessage(C.RED + "Spawner is now " + F.pc(speed) + " faster");
 								w.close();
@@ -404,7 +410,7 @@ public class SpawnerController extends ConfigurableController
 							else
 							{
 								Audio a = new Audio();
-								a.add(new GSound(Sound.WOOD_CLICK, 1f, (float) ((speed / (interval * levels)) * 1.8)));
+								a.add(new GSound(Sound.WOOD_CLICK, 1f, (float) (speed / (interval * levels) * 1.8)));
 								a.play(p);
 							}
 						}
