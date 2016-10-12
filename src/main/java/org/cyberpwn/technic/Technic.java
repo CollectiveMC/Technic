@@ -11,7 +11,7 @@ public class Technic extends Ghost
 	public void preStart()
 	{
 		instance = this;
-		this.controller = new TechnicController(this);
+		controller = new TechnicController(this);
 		
 		register(controller);
 	}
@@ -21,13 +21,13 @@ public class Technic extends Ghost
 	{
 		
 	}
-
+	
 	@Override
 	public void onStop()
 	{
 		
 	}
-
+	
 	@Override
 	public void postStop()
 	{
