@@ -100,6 +100,10 @@
 			<url>https://raw.githubusercontent.com/PhantomAPI/Phantom/master/repository/</url>
 		</repository>
 		<repository>
+			<id>vault-repo</id>
+			<url>http://nexus.hc.to/content/repositories/pub_releases</url>
+		</repository>
+		<repository>
 			<id>global</id>
 			<url>http://nexus.cyberpwn.org/content/groups/public/</url>
 		</repository>
@@ -112,7 +116,7 @@
 		<dependency>
 			<groupId>org.cyberpwn</groupId>
 			<artifactId>phantom</artifactId>
-			<version>P6</version>
+			<version>S2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.spigotmc</groupId>
@@ -121,13 +125,14 @@
 		</dependency>
 		<dependency>
 			<groupId>org.cyberpwn</groupId>
-			<artifactId>essentials</artifactId>
+			<artifactId>silkspawners</artifactId>
 			<version>1.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.cyberpwn</groupId>
-			<artifactId>silkspawners</artifactId>
-			<version>1.0</version>
+			<groupId>net.milkbowl.vault</groupId>
+			<artifactId>VaultAPI</artifactId>
+			<version>1.6</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 </project>
