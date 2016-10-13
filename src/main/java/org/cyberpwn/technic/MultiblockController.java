@@ -2,9 +2,13 @@ package org.cyberpwn.technic;
 
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Chest;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+import org.cyberpwn.technic.multiblock.AlarmMultiblock;
+import org.cyberpwn.technic.multiblock.EnderDispenserMultiblock;
+import org.cyberpwn.technic.multiblock.MobTurretMultiblock;
 import org.phantomapi.construct.Controllable;
 import org.phantomapi.construct.Controller;
 import org.phantomapi.event.MultiblockConstructEvent;
@@ -19,18 +23,21 @@ import org.phantomapi.world.MaterialBlock;
 
 public class MultiblockController extends Controller
 {
-	private AlarmMultiblockController alarmMultiblockController;
-	private MobTurretMultiblockStructure mobTurretMultiblockStructure;
+	private AlarmMultiblock alarmMultiblockStructure;
+	private MobTurretMultiblock mobTurretMultiblockStructure;
+	private EnderDispenserMultiblock enderDispenserMultiblockStructure;
 	
 	public MultiblockController(Controllable parentController)
 	{
 		super(parentController);
 		
-		alarmMultiblockController = new AlarmMultiblockController(this);
-		mobTurretMultiblockStructure = new MobTurretMultiblockStructure(this);
+		alarmMultiblockStructure = new AlarmMultiblock(this);
+		mobTurretMultiblockStructure = new MobTurretMultiblock(this);
+		enderDispenserMultiblockStructure = new EnderDispenserMultiblock(this);
 		
-		register(alarmMultiblockController);
+		register(alarmMultiblockStructure);
 		register(mobTurretMultiblockStructure);
+		register(enderDispenserMultiblockStructure);
 	}
 	
 	@Override
@@ -108,6 +115,23 @@ public class MultiblockController extends Controller
 					if(m.equals(Material.AIR))
 					{
 						return;
+					}
+					
+					if(m.equals(Material.CHEST))
+					{
+						Chest c = (Chest) mb.getMapping().get(i).getBlock().getState();
+						
+						for(ItemStack is : c.getInventory().getContents())
+						{
+							if(is == null || is.getType().equals(Material.AIR))
+							{
+								continue;
+							}
+							
+							mb.getMapping().get(i).getBlock().getWorld().dropItemNaturally(c.getLocation(), is);
+						}
+						
+						c.getInventory().clear();
 					}
 					
 					NMSX.breakParticles(mb.getMapping().get(i), m, 24);
