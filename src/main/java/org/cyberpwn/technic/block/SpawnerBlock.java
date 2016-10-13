@@ -1,4 +1,4 @@
-package org.cyberpwn.technic;
+package org.cyberpwn.technic.block;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -13,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -44,12 +45,13 @@ import org.phantomapi.util.C;
 import org.phantomapi.util.F;
 import org.phantomapi.util.M;
 import org.phantomapi.vfx.ParticleEffect;
+import org.phantomapi.world.Cuboid;
 import org.phantomapi.world.MaterialBlock;
 import de.dustplanet.util.SilkUtil;
 
 @Ticked(0)
 @SyncStart
-public class SpawnerController extends ConfigurableController
+public class SpawnerBlock extends ConfigurableController
 {
 	@Keyed("spawner.levels")
 	public int levels = 5;
@@ -66,9 +68,9 @@ public class SpawnerController extends ConfigurableController
 	private SilkUtil s;
 	private GList<Block> mapped;
 	
-	public SpawnerController(Controllable parentController)
+	public SpawnerBlock(Controllable parentController)
 	{
-		super(parentController, "spawners");
+		super(parentController, "spawner");
 		
 		s = SilkUtil.hookIntoSilkSpanwers();
 		mapped = new GList<Block>();
@@ -77,7 +79,7 @@ public class SpawnerController extends ConfigurableController
 	@Override
 	public void onStart()
 	{
-		loadCluster(this);
+		loadCluster(this, "block");
 	}
 	
 	@Override
@@ -262,7 +264,7 @@ public class SpawnerController extends ConfigurableController
 		{
 			boolean b = false;
 			int xp = (int) new VaultCurrency().get(e.getPlayer());
-			int cost = (int) (0.25 * ((getSpeed(e.getBlock()) + 1.0) * getPrice(e.getBlock())));
+			int cost = (int) (0.25 * getPrice(e.getBlock()));
 			
 			if(xp >= cost)
 			{
@@ -452,6 +454,77 @@ public class SpawnerController extends ConfigurableController
 		{
 			
 		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void on(EntityExplodeEvent e)
+	{
+		Cuboid c = new Cuboid(e.getEntity().getLocation().add(3, 3, 3), e.getEntity().getLocation().add(-3, -3, -3));
+		
+		new TaskLater(2)
+		{
+			@Override
+			public void run()
+			{
+				for(Block i : new GList<Block>(c.iterator()))
+				{
+					Location l = i.getLocation();
+					
+					if(l.getBlock().getType().equals(Material.MOB_SPAWNER) && M.r(0.65))
+					{
+						double speed = getSpeed(l.getBlock());
+						
+						s("SPEED: " + speed);
+						
+						if(speed == 0)
+						{
+							mapped.remove(l.getBlock());
+							Nest.getBlock(l.getBlock()).remove("t.s.v");
+							short k = s.getSpawnerEntityID(l.getBlock());
+							l.getBlock().setType(Material.AIR);
+							
+							new TaskLater(3)
+							{
+								@Override
+								public void run()
+								{
+									l.getWorld().dropItem(l, s.newSpawnerItem(k, C.YELLOW.toString() + s.getCreatureName(k) + C.WHITE.toString() + " Spawner"));
+								}
+							};
+						}
+						
+						else
+						{
+							short id = s.getSpawnerEntityID(l.getBlock());
+							String name = s.getCreatureName(id);
+							e.setCancelled(true);
+							String title = C.RED + "Overclocked " + C.YELLOW + name + " " + C.WHITE + "Spawner";
+							String lore = C.RED + "Boost: " + C.YELLOW + F.pc(speed);
+							ItemStack is = s.newSpawnerItem(id, name);
+							ItemMeta im = is.getItemMeta();
+							im.setDisplayName(title);
+							im.setLore(new GList<String>().qadd(lore));
+							is.setItemMeta(im);
+							mapped.remove(l.getBlock());
+							Nest.getBlock(l.getBlock()).remove("t.s.v");
+							l.getBlock().setType(Material.AIR);
+							
+							new TaskLater(3)
+							{
+								@Override
+								public void run()
+								{
+									s("DROPPING");
+									l.getWorld().dropItem(l, is);
+								}
+							};
+						}
+					}
+				}
+			}
+		};
+		
 	}
 	
 	public int getPrice(Block b)
