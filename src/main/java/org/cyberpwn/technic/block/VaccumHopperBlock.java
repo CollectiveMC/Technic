@@ -32,7 +32,7 @@ import org.phantomapi.util.Chunks;
 import org.phantomapi.vfx.ParticleEffect;
 import org.phantomapi.world.Area;
 
-@Ticked(5)
+@Ticked(20)
 public class VaccumHopperBlock extends ConfigurableController
 {
 	private GList<Block> vaccums;
@@ -92,7 +92,6 @@ public class VaccumHopperBlock extends ConfigurableController
 							ItemStack is = it.getItemStack().clone();
 							inv.addItem(is);
 							new GSound(Sound.ITEM_PICKUP, 1f, 1.5f).play(i.getLocation());
-							ParticleEffect.PORTAL.display(0.2f, 6, i.getLocation().add(0.5, 0.5, 0.5), 32);
 							i.remove();
 						}
 					}
