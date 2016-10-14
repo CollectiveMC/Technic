@@ -452,6 +452,11 @@ public class SpawnerBlock extends ConfigurableController
 					element.addText(C.GOLD + "This means this spawner will spawn " + (1.0 + speed) + "x speed");
 					element.addText((xp >= cost ? C.GREEN : C.RED) + "Costs: $" + F.f(cost));
 					
+					if(xp < cost)
+					{
+						element.addText(C.RED + "Cannot afford");
+					}
+					
 					w.addElement(element);
 					break;
 				}
