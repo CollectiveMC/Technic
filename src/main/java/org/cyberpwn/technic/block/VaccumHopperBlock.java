@@ -74,27 +74,35 @@ public class VaccumHopperBlock extends ConfigurableController
 				Hopper h = (Hopper) next.getState();
 				Inventory inv = h.getInventory();
 				
-				if(new PhantomInventory(inv).hasSpace())
+				try
 				{
-					Area a = new Area(next.getLocation().add(0.5, 0.5, 0.5), 4);
-					
-					for(Entity i : a.getNearbyEntities())
+					if(new PhantomInventory(inv).hasSpace())
 					{
-						if(i.getType().equals(EntityType.DROPPED_ITEM))
+						Area a = new Area(next.getLocation().add(0.5, 0.5, 0.5), 4);
+						
+						for(Entity i : a.getNearbyEntities())
 						{
-							if(marked.contains(i))
+							if(i.getType().equals(EntityType.DROPPED_ITEM))
 							{
-								continue;
+								if(marked.contains(i))
+								{
+									continue;
+								}
+								
+								marked.add(i);
+								Item it = (Item) i;
+								ItemStack is = it.getItemStack().clone();
+								inv.addItem(is);
+								new GSound(Sound.ENDERMAN_TELEPORT, 1f, 1.5f).play(i.getLocation());
+								i.remove();
 							}
-							
-							marked.add(i);
-							Item it = (Item) i;
-							ItemStack is = it.getItemStack().clone();
-							inv.addItem(is);
-							new GSound(Sound.ITEM_PICKUP, 1f, 1.5f).play(i.getLocation());
-							i.remove();
 						}
 					}
+				}
+				
+				catch(Exception ex)
+				{
+					
 				}
 			}
 		});
