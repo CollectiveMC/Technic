@@ -74,6 +74,10 @@ public class SpawnerBlock extends ConfigurableController
 	@Keyed("enabled")
 	public boolean enabled = true;
 	
+	@Comment("if set to true, you will have to pay money to mine spawners")
+	@Keyed("charge-on-mine")
+	public boolean chargeMines = true;
+	
 	private SilkUtil s;
 	private GList<Block> mapped;
 	
@@ -271,50 +275,53 @@ public class SpawnerBlock extends ConfigurableController
 	{
 		if(e.getBlock().getType().equals(Material.MOB_SPAWNER))
 		{
-			boolean b = false;
-			int xp = (int) new VaultCurrency().get(e.getPlayer());
-			int cost = (int) (0.25 * getPrice(e.getBlock()));
-			
-			if(xp >= cost)
+			if(chargeMines)
 			{
-				ItemStack is = e.getPlayer().getItemInHand();
+				boolean b = false;
+				int xp = (int) new VaultCurrency().get(e.getPlayer());
+				int cost = (int) (0.25 * getPrice(e.getBlock()));
 				
-				if(is != null && is.getEnchantments().containsKey(Enchantment.SILK_TOUCH))
+				if(xp >= cost)
 				{
-					new Transaction(new VaultCurrency()).from(e.getPlayer()).amount((double) cost).commit();
-					b = true;
-					e.getPlayer().sendMessage(C.RED + "Mined for " + F.f(cost) + "$");
+					ItemStack is = e.getPlayer().getItemInHand();
+					
+					if(is != null && is.getEnchantments().containsKey(Enchantment.SILK_TOUCH))
+					{
+						new Transaction(new VaultCurrency()).from(e.getPlayer()).amount((double) cost).commit();
+						b = true;
+						e.getPlayer().sendMessage(C.RED + "Mined for " + F.f(cost) + "$");
+					}
+					
+					else
+					{
+						return;
+					}
 				}
 				
 				else
 				{
+					DataCluster dc = Nest.getBlock(e.getBlock()).copy();
+					e.getPlayer().sendMessage(C.RED + "You need " + F.f(cost) + "$ to mine this.");
+					e.setCancelled(true);
+					
+					new TaskLater()
+					{
+						@Override
+						public void run()
+						{
+							Nest.getBlock(e.getBlock()).setData(dc.getData());
+							Nest.getBlock(e.getBlock()).set("s", true);
+						}
+					};
+					
 					return;
 				}
-			}
-			
-			else
-			{
-				DataCluster dc = Nest.getBlock(e.getBlock()).copy();
-				e.getPlayer().sendMessage(C.RED + "You need " + F.f(cost) + "$ to mine this.");
-				e.setCancelled(true);
 				
-				new TaskLater()
+				if(!b)
 				{
-					@Override
-					public void run()
-					{
-						Nest.getBlock(e.getBlock()).setData(dc.getData());
-						Nest.getBlock(e.getBlock()).set("s", true);
-					}
-				};
-				
-				return;
-			}
-			
-			if(!b)
-			{
-				e.setCancelled(true);
-				return;
+					e.setCancelled(true);
+					return;
+				}
 			}
 			
 			if(Nest.getBlock(e.getBlock()).contains("t.s.v"))
