@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.phantomapi.clust.Comment;
 import org.phantomapi.clust.ConfigurableController;
 import org.phantomapi.clust.DataCluster;
 import org.phantomapi.clust.Keyed;
@@ -53,17 +54,25 @@ import de.dustplanet.util.SilkUtil;
 @SyncStart
 public class SpawnerBlock extends ConfigurableController
 {
+	@Comment("Max levels")
 	@Keyed("spawner.levels")
 	public int levels = 5;
 	
+	@Comment("Level interval")
 	@Keyed("spawner.interval")
 	public double interval = 0.5;
 	
+	@Comment("Spawner price node for what shop")
 	@Keyed("spawner.price-node")
 	public String node = "shop";
 	
+	@Comment("The Multiplier for the upgrade price")
 	@Keyed("spawner.default-mult")
 	public double defaultMultiplier = 8000;
+	
+	@Comment("Enable or disable spawner leveling")
+	@Keyed("enabled")
+	public boolean enabled = true;
 	
 	private SilkUtil s;
 	private GList<Block> mapped;
