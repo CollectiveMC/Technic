@@ -429,7 +429,7 @@ public class SpawnerBlock extends ConfigurableController
 					
 					element.setTitle(C.GOLD + "+ " + F.pc(speed) + " overclock");
 					element.addText(C.GOLD + "This means this spawner will spawn " + (1.0 + speed) + "x speed");
-					element.addText((xp >= cost ? C.GREEN : C.RED) + "Costs: " + F.f(cost) + " XP");
+					element.addText((xp >= cost ? C.GREEN : C.RED) + "Costs: $" + F.f(cost));
 					
 					w.addElement(element);
 					break;
