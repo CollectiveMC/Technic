@@ -483,6 +483,12 @@ public class SpawnerBlock extends ConfigurableController
 				
 				okm(e);
 			}
+			
+			else if(e.getClickedBlock().getType().equals(Material.MOB_SPAWNER) && e.getAction().equals(Action.LEFT_CLICK_BLOCK))
+			{
+				int cost = (int) (0.25 * getPrice(e.getClickedBlock()));
+				e.getPlayer().sendMessage(C.RED + "You will spend $" + F.f(cost) + " if you mine this.");
+			}
 		}
 		
 		catch(Exception ex)
