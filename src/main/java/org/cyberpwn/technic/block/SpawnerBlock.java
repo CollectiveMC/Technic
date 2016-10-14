@@ -48,6 +48,7 @@ import org.phantomapi.util.M;
 import org.phantomapi.vfx.ParticleEffect;
 import org.phantomapi.world.Cuboid;
 import org.phantomapi.world.MaterialBlock;
+import org.phantomapi.world.W;
 import de.dustplanet.util.SilkUtil;
 
 @Ticked(0)
@@ -65,6 +66,10 @@ public class SpawnerBlock extends ConfigurableController
 	@Comment("Spawner price node for what shop")
 	@Keyed("spawner.price-node")
 	public String node = "shop";
+	
+	@Comment("This will be treaded as if this is in the shop")
+	@Keyed("spawner.override-price")
+	public GList<String> spawnerHacks = new GList<String>().qadd("MOB_SPAWNER:99;5000");
 	
 	@Comment("The Multiplier for the upgrade price")
 	@Keyed("spawner.default-mult")
@@ -173,6 +178,15 @@ public class SpawnerBlock extends ConfigurableController
 		try
 		{
 			MaterialBlock mb = new MaterialBlock(Material.MOB_SPAWNER, (byte) s.getSpawnerEntityID(block));
+			
+			for(String i : spawnerHacks)
+			{
+				if(W.getMaterialBlock(i.split(";")[0]).getData() == mb.getData())
+				{
+					return Integer.valueOf(i.split(";")[1]);
+				}
+			}
+			
 			ControllerMessage message = new ControllerMessage(this);
 			message.set("value", mb.getMaterial() + ":" + mb.getData());
 			message.set("shop", node);
@@ -545,6 +559,14 @@ public class SpawnerBlock extends ConfigurableController
 		Double value = 0.0;
 		Block bx = new Location(Bukkit.getWorld(b.getWorld().getName()), b.getX(), b.getY(), b.getZ()).getBlock();
 		MaterialBlock mb = new MaterialBlock(Material.MOB_SPAWNER, (byte) s.getSpawnerEntityID(bx));
+		
+		for(String i : spawnerHacks)
+		{
+			if(W.getMaterialBlock(i.split(";")[0]).getData() == mb.getData())
+			{
+				return Integer.valueOf(i.split(";")[1]);
+			}
+		}
 		
 		try
 		{
