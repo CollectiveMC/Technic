@@ -15,7 +15,9 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.phantomapi.clust.Comment;
 import org.phantomapi.clust.ConfigurableController;
+import org.phantomapi.clust.Keyed;
 import org.phantomapi.construct.Controllable;
 import org.phantomapi.construct.Ticked;
 import org.phantomapi.event.NestChunkLoadEvent;
@@ -32,11 +34,24 @@ import org.phantomapi.util.Chunks;
 import org.phantomapi.vfx.ParticleEffect;
 import org.phantomapi.world.Area;
 
-@Ticked(20)
+@Ticked(0)
 public class VaccumHopperBlock extends ConfigurableController
 {
 	private GList<Block> vaccums;
 	private GList<Entity> marked;
+	private int delay;
+	
+	@Comment("The interval a hopper sucks up nearby items")
+	@Keyed("interval")
+	public int interval = 20;
+	
+	@Comment("The Range of the vaccum")
+	@Keyed("range")
+	public double range = 4.3;
+	
+	@Comment("Should vaccum hoppers exist?")
+	@Keyed("enabled")
+	public boolean enable = true;
 	
 	public VaccumHopperBlock(Controllable parentController)
 	{
@@ -45,72 +60,96 @@ public class VaccumHopperBlock extends ConfigurableController
 		marked = new GList<Entity>();
 		vaccums = new GList<Block>();
 		
+		loadCluster(this, "block");
+		
+		if(!enable)
+		{
+			return;
+		}
+		
+		delay = interval;
+		
 		ShapedRecipe r = new ShapedRecipe(getItem());
 		r.shape("***", "B%B", "***");
 		r.setIngredient('*', Material.EYE_OF_ENDER);
 		r.setIngredient('%', Material.HOPPER);
 		r.setIngredient('B', Material.ENDER_CHEST);
 		getPlugin().getServer().addRecipe(r);
-		
-		loadCluster(this, "block");
 	}
 	
 	@Override
 	public void onTick()
 	{
-		vaccums.schedule(new ExecutiveRunnable<Block>()
+		if(!enable)
 		{
-			@Override
-			public void run()
+			return;
+		}
+		
+		delay--;
+		
+		if(delay <= 0)
+		{
+			delay = interval;
+			
+			vaccums.schedule(new ExecutiveRunnable<Block>()
 			{
-				Block next = next();
-				
-				if(!next.getType().equals(Material.HOPPER))
+				@Override
+				public void run()
 				{
-					return;
-				}
-				
-				ParticleEffect.PORTAL.display(0.4f, 4, next.getLocation().add(0.5, 0.5, 0.5), 32);
-				Hopper h = (Hopper) next.getState();
-				Inventory inv = h.getInventory();
-				
-				try
-				{
-					if(new PhantomInventory(inv).hasSpace())
+					Block next = next();
+					
+					if(!next.getType().equals(Material.HOPPER))
 					{
-						Area a = new Area(next.getLocation().add(0.5, 0.5, 0.5), 4);
-						
-						for(Entity i : a.getNearbyEntities())
+						return;
+					}
+					
+					ParticleEffect.PORTAL.display(0.4f, 4, next.getLocation().add(0.5, 0.5, 0.5), 32);
+					Hopper h = (Hopper) next.getState();
+					Inventory inv = h.getInventory();
+					
+					try
+					{
+						if(new PhantomInventory(inv).hasSpace())
 						{
-							if(i.getType().equals(EntityType.DROPPED_ITEM))
+							Area a = new Area(next.getLocation().add(0.5, 0.5, 0.5), range);
+							
+							for(Entity i : a.getNearbyEntities())
 							{
-								if(marked.contains(i))
+								if(i.getType().equals(EntityType.DROPPED_ITEM))
 								{
-									continue;
+									if(marked.contains(i))
+									{
+										continue;
+									}
+									
+									marked.add(i);
+									Item it = (Item) i;
+									ItemStack is = it.getItemStack().clone();
+									inv.addItem(is);
+									new GSound(Sound.ENDERMAN_TELEPORT, 1f, 1.5f).play(i.getLocation());
+									i.remove();
 								}
-								
-								marked.add(i);
-								Item it = (Item) i;
-								ItemStack is = it.getItemStack().clone();
-								inv.addItem(is);
-								new GSound(Sound.ENDERMAN_TELEPORT, 1f, 1.5f).play(i.getLocation());
-								i.remove();
 							}
 						}
 					}
-				}
-				
-				catch(Exception ex)
-				{
 					
+					catch(Exception ex)
+					{
+						
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 	
 	@Override
 	public void onStart()
 	{
+		if(!enable)
+		{
+			return;
+		}
+		
 		for(Chunk i : Chunks.getLoadedChunks())
 		{
 			NestedChunk c = Nest.getChunk(i);
@@ -137,6 +176,11 @@ public class VaccumHopperBlock extends ConfigurableController
 	@EventHandler
 	public void on(NestChunkLoadEvent e)
 	{
+		if(!enable)
+		{
+			return;
+		}
+		
 		for(NestedBlock i : e.getNestedChunk().getBlocks().v())
 		{
 			if(i.contains("ttype") && i.getString("ttype").equals("vaccum-hopper") && i.getLocation().toLocation().getBlock().getType().equals(Material.HOPPER))
@@ -149,6 +193,11 @@ public class VaccumHopperBlock extends ConfigurableController
 	@EventHandler
 	public void on(NestChunkUnloadEvent e)
 	{
+		if(!enable)
+		{
+			return;
+		}
+		
 		for(NestedBlock i : e.getNestedChunk().getBlocks().v())
 		{
 			vaccums.remove(i.getLocation().toLocation().getBlock());
@@ -158,6 +207,11 @@ public class VaccumHopperBlock extends ConfigurableController
 	@EventHandler
 	public void on(BlockPlaceEvent e)
 	{
+		if(!enable)
+		{
+			return;
+		}
+		
 		if(e.getItemInHand().getType().equals(Material.HOPPER))
 		{
 			try
@@ -182,6 +236,11 @@ public class VaccumHopperBlock extends ConfigurableController
 	@EventHandler
 	public void on(BlockBreakEvent e)
 	{
+		if(!enable)
+		{
+			return;
+		}
+		
 		if(Nest.getBlock(e.getBlock()).contains("ttype") && Nest.getBlock(e.getBlock()).getString("ttype").equals("vaccum-hopper"))
 		{
 			e.setCancelled(true);
