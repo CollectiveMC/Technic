@@ -471,11 +471,9 @@ public class SpawnerBlock extends ConfigurableController
 				{
 					Location l = i.getLocation();
 					
-					if(l.getBlock().getType().equals(Material.MOB_SPAWNER) && M.r(0.65))
+					if(l.getBlock().getType().equals(Material.MOB_SPAWNER) && M.r(0.80))
 					{
 						double speed = getSpeed(l.getBlock());
-						
-						s("SPEED: " + speed);
 						
 						if(speed == 0)
 						{
@@ -515,7 +513,6 @@ public class SpawnerBlock extends ConfigurableController
 								@Override
 								public void run()
 								{
-									s("DROPPING");
 									l.getWorld().dropItem(l, is);
 								}
 							};
