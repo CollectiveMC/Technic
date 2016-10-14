@@ -7,7 +7,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.cyberpwn.technic.multiblock.AlarmMultiblock;
-import org.cyberpwn.technic.multiblock.EnderDispenserMultiblock;
 import org.cyberpwn.technic.multiblock.MobTurretMultiblock;
 import org.phantomapi.construct.Controllable;
 import org.phantomapi.construct.Controller;
@@ -25,7 +24,6 @@ public class MultiblockController extends Controller
 {
 	private AlarmMultiblock alarmMultiblockStructure;
 	private MobTurretMultiblock mobTurretMultiblockStructure;
-	private EnderDispenserMultiblock enderDispenserMultiblockStructure;
 	
 	public MultiblockController(Controllable parentController)
 	{
@@ -33,11 +31,9 @@ public class MultiblockController extends Controller
 		
 		alarmMultiblockStructure = new AlarmMultiblock(this);
 		mobTurretMultiblockStructure = new MobTurretMultiblock(this);
-		enderDispenserMultiblockStructure = new EnderDispenserMultiblock(this);
 		
 		register(alarmMultiblockStructure);
 		register(mobTurretMultiblockStructure);
-		register(enderDispenserMultiblockStructure);
 	}
 	
 	@Override
