@@ -70,7 +70,7 @@ public class VaccumHopperBlock extends ConfigurableController
 					return;
 				}
 				
-				ParticleEffect.PORTAL.display(0.4f, 12, next.getLocation().add(0.5, 0.5, 0.5), 32);
+				ParticleEffect.PORTAL.display(0.4f, 4, next.getLocation().add(0.5, 0.5, 0.5), 32);
 				Hopper h = (Hopper) next.getState();
 				Inventory inv = h.getInventory();
 				
