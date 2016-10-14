@@ -289,7 +289,7 @@ public class SpawnerBlock extends ConfigurableController
 	{
 		if(e.getBlock().getType().equals(Material.MOB_SPAWNER))
 		{
-			if(chargeMines)
+			if(chargeMines && Nest.getBlock(e.getBlock()).contains("t.s.v"))
 			{
 				boolean b = false;
 				int xp = (int) new VaultCurrency().get(e.getPlayer());
@@ -406,6 +406,11 @@ public class SpawnerBlock extends ConfigurableController
 	
 	public void okm(PlayerInteractEvent e)
 	{
+		if(Nest.getBlock(e.getClickedBlock()).contains("s") && !Nest.getBlock(e.getClickedBlock()).contains("t.s.v"))
+		{
+			Nest.getBlock(e.getClickedBlock()).set("t.s.v", 0.0);
+		}
+		
 		double rate = getSpeed(e.getClickedBlock());
 		
 		if(rate >= 0.0)
@@ -486,8 +491,11 @@ public class SpawnerBlock extends ConfigurableController
 			
 			else if(e.getClickedBlock().getType().equals(Material.MOB_SPAWNER) && e.getAction().equals(Action.LEFT_CLICK_BLOCK))
 			{
-				int cost = (int) (0.25 * getPrice(e.getClickedBlock()));
-				e.getPlayer().sendMessage(C.RED + "You will spend $" + F.f(cost) + " if you mine this.");
+				if(Nest.getBlock(e.getClickedBlock()).contains("s") && Nest.getBlock(e.getClickedBlock()).contains("t.s.v"))
+				{
+					int cost = (int) (0.25 * getPrice(e.getClickedBlock()));
+					e.getPlayer().sendMessage(C.RED + "You will spend $" + F.f(cost) + " if you mine this.");
+				}
 			}
 		}
 		
