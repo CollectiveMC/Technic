@@ -84,7 +84,7 @@ public class MobTurretMultiblock extends ConfigurableController
 					Vector push = VectorMath.direction(l, e.getLocation());
 					e.setVelocity(push.clone().multiply(4));
 					new GSound(Sound.AMBIENCE_THUNDER, 4f, 1.9f).play(l);
-					new ShockEffect(5.5f).play(l, push);
+					new ShockEffect(0.5f).play(l, push);
 				}
 			}
 		}
