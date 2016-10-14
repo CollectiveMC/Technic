@@ -22,13 +22,22 @@ import org.phantomapi.vfx.ParticleEffect;
 import org.phantomapi.world.Area;
 import org.phantomapi.world.MaterialBlock;
 
-@Ticked(60)
+@Ticked(0)
 public class MobTurretMultiblock extends ConfigurableController
 {
 	private MultiblockStructure structure;
+	private int delay;
+	
+	@Comment("The interval in ticks")
+	@Keyed("interval")
+	public int interval = 60;
+	
+	@Comment("The Range of the structure")
+	@Keyed("range")
+	public double range = 16.1;
 	
 	@Comment("Should this structure be enabled?")
-	@Keyed("enable")
+	@Keyed("enabled")
 	public boolean enabled = true;
 	
 	public MobTurretMultiblock(Controllable parentController)
@@ -42,6 +51,7 @@ public class MobTurretMultiblock extends ConfigurableController
 			return;
 		}
 		
+		delay = interval;
 		structure = new MultiblockStructure("mob-turret");
 		
 		structure.add(1, 0, 0, new MaterialBlock(Material.EMERALD_BLOCK));
@@ -69,22 +79,29 @@ public class MobTurretMultiblock extends ConfigurableController
 			return;
 		}
 		
-		for(Multiblock i : Phantom.instance().getMultiblockRegistryController().getMultiblocks("mob-turret"))
+		delay--;
+		
+		if(delay <= 0)
 		{
-			Location l = i.getMapping().get(new Vector(0, 2, 0)).clone().add(0.5, 0.5, 0.5);
-			Area a = new Area(l, 16);
-			ParticleEffect.ENCHANTMENT_TABLE.display(4.3f, 64, l, 32);
+			delay = interval;
 			
-			for(Entity j : a.getNearbyEntities())
+			for(Multiblock i : Phantom.instance().getMultiblockRegistryController().getMultiblocks("mob-turret"))
 			{
-				if(j instanceof LivingEntity && !j.getType().equals(EntityType.PLAYER))
+				Location l = i.getMapping().get(new Vector(0, 2, 0)).clone().add(0.5, 0.5, 0.5);
+				Area a = new Area(l, range);
+				ParticleEffect.ENCHANTMENT_TABLE.display(4.3f, 64, l, 32);
+				
+				for(Entity j : a.getNearbyEntities())
 				{
-					LivingEntity e = (LivingEntity) j;
-					e.damage(5.5);
-					Vector push = VectorMath.direction(l, e.getLocation());
-					e.setVelocity(push.clone().multiply(4));
-					new GSound(Sound.AMBIENCE_THUNDER, 4f, 1.9f).play(l);
-					new ShockEffect(0.5f).play(l, push);
+					if(j instanceof LivingEntity && !j.getType().equals(EntityType.PLAYER))
+					{
+						LivingEntity e = (LivingEntity) j;
+						e.damage(5.5);
+						Vector push = VectorMath.direction(l, e.getLocation());
+						e.setVelocity(push.clone().multiply(4));
+						new GSound(Sound.AMBIENCE_THUNDER, 4f, 1.9f).play(l);
+						new ShockEffect(0.5f).play(l, push);
+					}
 				}
 			}
 		}
