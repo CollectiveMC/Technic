@@ -39,6 +39,7 @@ import org.phantomapi.lang.GList;
 import org.phantomapi.lang.GListAdapter;
 import org.phantomapi.lang.GLocation;
 import org.phantomapi.lang.GSound;
+import org.phantomapi.lang.GTime;
 import org.phantomapi.nest.Nest;
 import org.phantomapi.sfx.Audio;
 import org.phantomapi.sync.TaskLater;
@@ -58,6 +59,10 @@ public class SpawnerBlock extends ConfigurableController
 	@Comment("Max levels")
 	@Keyed("spawner.levels")
 	public int levels = 5;
+	
+	@Comment("Grace period after place to not be charged for mining")
+	@Keyed("spawner.grace-seconds")
+	public int graceSeconds = 120;
 	
 	@Comment("Level interval")
 	@Keyed("spawner.interval")
@@ -171,6 +176,39 @@ public class SpawnerBlock extends ConfigurableController
 		}
 	}
 	
+	public GTime getGrace(Block block)
+	{
+		if(!isGraced(block))
+		{
+			return null;
+		}
+		
+		if(block.getType().equals(Material.MOB_SPAWNER) && Nest.getBlock(block).contains("t.s.m"))
+		{
+			long es = 1000 * graceSeconds;
+			return new GTime(Nest.getBlock(block).getLong("t.s.m") + es - M.ms());
+		}
+		
+		return null;
+	}
+	
+	public boolean isGraced(Block block)
+	{
+		if(block.getType().equals(Material.MOB_SPAWNER) && Nest.getBlock(block).contains("t.s.m"))
+		{
+			long es = 1000 * graceSeconds;
+			
+			if(Nest.getBlock(block).getLong("t.s.m") + es - M.ms() < 0)
+			{
+				return false;
+			}
+			
+			return Nest.getBlock(block).getLong("t.s.m") + es > M.ms();
+		}
+		
+		return false;
+	}
+	
 	public double getValue(Block block)
 	{
 		Double result = null;
@@ -246,6 +284,7 @@ public class SpawnerBlock extends ConfigurableController
 		if(e.getBlock().getType().equals(Material.MOB_SPAWNER))
 		{
 			Nest.getBlock(e.getBlock()).set("t.s.v", 0.0);
+			Nest.getBlock(e.getBlock()).set("t.s.m", M.ms());
 			mapped.add(e.getBlock());
 			ItemStack is = e.getItemInHand();
 			
@@ -265,6 +304,7 @@ public class SpawnerBlock extends ConfigurableController
 							Integer v = Integer.valueOf(d);
 							Double vv = (double) v / 100.0;
 							Nest.getBlock(e.getBlock()).set("t.s.v", vv);
+							Nest.getBlock(e.getBlock()).set("t.s.m", M.ms());
 							break;
 						}
 						
@@ -289,7 +329,7 @@ public class SpawnerBlock extends ConfigurableController
 	{
 		if(e.getBlock().getType().equals(Material.MOB_SPAWNER))
 		{
-			if(chargeMines && Nest.getBlock(e.getBlock()).contains("t.s.v"))
+			if(chargeMines && Nest.getBlock(e.getBlock()).contains("t.s.v") && !isGraced(e.getBlock()))
 			{
 				boolean b = false;
 				int xp = (int) new VaultCurrency().get(e.getPlayer());
@@ -401,6 +441,7 @@ public class SpawnerBlock extends ConfigurableController
 			
 			mapped.remove(e.getBlock());
 			Nest.getBlock(e.getBlock()).remove("t.s.v");
+			Nest.getBlock(e.getBlock()).remove("t.s.m");
 		}
 	}
 	
@@ -409,6 +450,7 @@ public class SpawnerBlock extends ConfigurableController
 		if(Nest.getBlock(e.getClickedBlock()).contains("s") && !Nest.getBlock(e.getClickedBlock()).contains("t.s.v"))
 		{
 			Nest.getBlock(e.getClickedBlock()).set("t.s.v", 0.0);
+			Nest.getBlock(e.getClickedBlock()).set("t.s.m", 0.0);
 		}
 		
 		double rate = getSpeed(e.getClickedBlock());
@@ -477,6 +519,11 @@ public class SpawnerBlock extends ConfigurableController
 	{
 		try
 		{
+			if(e.getClickedBlock() == null)
+			{
+				return;
+			}
+			
 			if(e.getClickedBlock().getType().equals(Material.MOB_SPAWNER) && e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
 			{
 				if(e.getPlayer().isSneaking())
@@ -493,6 +540,15 @@ public class SpawnerBlock extends ConfigurableController
 			{
 				if(Nest.getBlock(e.getClickedBlock()).contains("s") && Nest.getBlock(e.getClickedBlock()).contains("t.s.v"))
 				{
+					if(Nest.getBlock(e.getClickedBlock()).contains("t.s.m"))
+					{
+						if(isGraced(e.getClickedBlock()))
+						{
+							e.getPlayer().sendMessage(C.GREEN + "Free to mine for " + getGrace(e.getClickedBlock()).to());
+							return;
+						}
+					}
+					
 					int cost = (int) (0.25 * getPrice(e.getClickedBlock()));
 					e.getPlayer().sendMessage(C.RED + "You will spend $" + F.f(cost) + " if you mine this.");
 				}
@@ -501,7 +557,7 @@ public class SpawnerBlock extends ConfigurableController
 		
 		catch(Exception ex)
 		{
-			
+			ex.printStackTrace();
 		}
 	}
 	
@@ -528,6 +584,7 @@ public class SpawnerBlock extends ConfigurableController
 						{
 							mapped.remove(l.getBlock());
 							Nest.getBlock(l.getBlock()).remove("t.s.v");
+							Nest.getBlock(l.getBlock()).remove("t.s.m");
 							short k = s.getSpawnerEntityID(l.getBlock());
 							l.getBlock().setType(Material.AIR);
 							
@@ -555,6 +612,7 @@ public class SpawnerBlock extends ConfigurableController
 							is.setItemMeta(im);
 							mapped.remove(l.getBlock());
 							Nest.getBlock(l.getBlock()).remove("t.s.v");
+							Nest.getBlock(l.getBlock()).remove("t.s.m");
 							l.getBlock().setType(Material.AIR);
 							
 							new TaskLater(3)
@@ -570,7 +628,6 @@ public class SpawnerBlock extends ConfigurableController
 				}
 			}
 		};
-		
 	}
 	
 	public int getPrice(Block b)
