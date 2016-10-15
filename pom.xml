@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cyberpwn</groupId>
 	<artifactId>technic</artifactId>
-	<version>1.5</version>
+	<version>1.6</version>
 	<name>Technic</name>
 	<description>Technics</description>
 	<properties>
@@ -116,7 +116,7 @@
 		<dependency>
 			<groupId>org.cyberpwn</groupId>
 			<artifactId>phantom</artifactId>
-			<version>S3</version>
+			<version>S7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.spigotmc</groupId>
