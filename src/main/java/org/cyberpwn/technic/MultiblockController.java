@@ -18,6 +18,7 @@ import org.phantomapi.multiblock.Multiblock;
 import org.phantomapi.multiblock.MultiblockStructure;
 import org.phantomapi.nms.NMSX;
 import org.phantomapi.sync.TaskLater;
+import org.phantomapi.world.Blocks;
 import org.phantomapi.world.MaterialBlock;
 
 public class MultiblockController extends Controller
@@ -51,12 +52,38 @@ public class MultiblockController extends Controller
 	@EventHandler
 	public void on(MultiblockConstructEvent e)
 	{
+		try
+		{
+			if(Blocks.canModify(e.getPlayer(), e.getBlock()))
+			{
+				return;
+			}
+		}
+		
+		catch(Exception ex)
+		{
+			
+		}
+		
 		created(e.getMultiblock());
 	}
 	
 	@EventHandler
 	public void on(MultiblockDestroyEvent e)
 	{
+		try
+		{
+			if(Blocks.canModify(e.getPlayer(), e.getBlock()))
+			{
+				return;
+			}
+		}
+		
+		catch(Exception ex)
+		{
+			
+		}
+		
 		broken(e.getMultiblock());
 	}
 	
