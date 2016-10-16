@@ -54,7 +54,7 @@ public class MultiblockController extends Controller
 	{
 		try
 		{
-			if(Blocks.canModify(e.getPlayer(), e.getBlock()))
+			if(!Blocks.canModify(e.getPlayer(), e.getBlock()))
 			{
 				return;
 			}
@@ -73,7 +73,7 @@ public class MultiblockController extends Controller
 	{
 		try
 		{
-			if(Blocks.canModify(e.getPlayer(), e.getBlock()))
+			if(!Blocks.canModify(e.getPlayer(), e.getBlock()))
 			{
 				return;
 			}
