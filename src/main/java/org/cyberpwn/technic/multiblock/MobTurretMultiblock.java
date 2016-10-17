@@ -18,6 +18,7 @@ import org.phantomapi.lang.GSound;
 import org.phantomapi.multiblock.Multiblock;
 import org.phantomapi.multiblock.MultiblockStructure;
 import org.phantomapi.physics.VectorMath;
+import org.phantomapi.sync.TaskLater;
 import org.phantomapi.vfx.ParticleEffect;
 import org.phantomapi.world.Area;
 import org.phantomapi.world.MaterialBlock;
@@ -95,12 +96,27 @@ public class MobTurretMultiblock extends ConfigurableController
 				{
 					if(j instanceof LivingEntity && !j.getType().equals(EntityType.PLAYER))
 					{
-						LivingEntity e = (LivingEntity) j;
-						e.damage(5.5);
-						Vector push = VectorMath.direction(l, e.getLocation());
-						e.setVelocity(push.clone().multiply(4));
-						new GSound(Sound.AMBIENCE_THUNDER, 4f, 1.9f).play(l);
-						new ShockEffect(0.5f).play(l, push);
+						new TaskLater((int) (5 * Math.random()))
+						{
+							@Override
+							public void run()
+							{
+								try
+								{
+									LivingEntity e = (LivingEntity) j;
+									e.damage(5.5);
+									Vector push = VectorMath.direction(l, e.getLocation());
+									e.setVelocity(push.clone().multiply(4));
+									new GSound(Sound.AMBIENCE_THUNDER, 4f, 1.9f).play(l);
+									new ShockEffect(0.5f).play(l, push);
+								}
+								
+								catch(Exception e)
+								{
+									
+								}
+							}
+						};
 					}
 				}
 			}
