@@ -8,6 +8,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
@@ -17,6 +18,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.Vector;
 import org.phantomapi.clust.Comment;
 import org.phantomapi.clust.ConfigurableController;
 import org.phantomapi.clust.DataCluster;
@@ -405,7 +407,9 @@ public class SpawnerBlock extends ConfigurableController
 							@Override
 							public void run()
 							{
-								e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), is);
+								Item ent = e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), is);
+								ent.teleport(e.getBlock().getLocation().add(0.5, 0, 0.5));
+								ent.setVelocity(new Vector(0, 0, 0));
 							}
 						};
 					}
@@ -432,7 +436,9 @@ public class SpawnerBlock extends ConfigurableController
 							@Override
 							public void run()
 							{
-								e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), is);
+								Item ent = e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), is);
+								ent.teleport(e.getBlock().getLocation().add(0.5, 0, 0.5));
+								ent.setVelocity(new Vector(0, 0, 0));
 							}
 						};
 					}
