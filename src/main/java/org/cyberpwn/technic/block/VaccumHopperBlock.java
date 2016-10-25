@@ -124,6 +124,12 @@ public class VaccumHopperBlock extends ConfigurableController
 									
 									marked.add(i);
 									Item it = (Item) i;
+									
+									if(it.getItemStack().getType().equals(Material.HOPPER))
+									{
+										continue;
+									}
+									
 									ItemStack is = it.getItemStack().clone();
 									inv.addItem(is);
 									new GSound(Sound.ENDERMAN_TELEPORT, 1f, 1.5f).play(i.getLocation());
@@ -219,7 +225,7 @@ public class VaccumHopperBlock extends ConfigurableController
 				ItemStack is = e.getItemInHand();
 				ItemMeta im = is.getItemMeta();
 				
-				if(im.getDisplayName().equals(C.LIGHT_PURPLE + "Vaccum Hopper") && im.getLore().get(0).equals(C.DARK_PURPLE + "Sucks up nearby items"))
+				if(im.getDisplayName().equals(C.LIGHT_PURPLE + "Vacuum Hopper") && im.getLore().get(0).equals(C.DARK_PURPLE + "Sucks up nearby items"))
 				{
 					Nest.getBlock(e.getBlock()).set("ttype", "vaccum-hopper");
 					vaccums.add(e.getBlock());
@@ -255,7 +261,7 @@ public class VaccumHopperBlock extends ConfigurableController
 	{
 		ItemStack is = new ItemStack(Material.HOPPER);
 		ItemMeta im = is.getItemMeta();
-		im.setDisplayName(C.LIGHT_PURPLE + "Vaccum Hopper");
+		im.setDisplayName(C.LIGHT_PURPLE + "Vacuum Hopper");
 		im.setLore(new GList<String>().qadd(C.DARK_PURPLE + "Sucks up nearby items"));
 		is.setItemMeta(im);
 		
