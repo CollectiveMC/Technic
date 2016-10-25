@@ -131,19 +131,15 @@ public class VaccumHopperBlock extends ConfigurableController
 									}
 									
 									ItemStack is = it.getItemStack().clone();
+									
+									if(i.isDead())
+									{
+										continue;
+									}
+									
 									inv.addItem(is);
-									
-									try
-									{
-										new GSound(Sound.ENDERMAN_TELEPORT, 1f, 1.5f).play(i.getLocation());
-									}
-									
-									catch(Exception e)
-									{
-										
-									}
-									
 									i.remove();
+									new GSound(Sound.ENDERMAN_TELEPORT, 1f, 1.5f).play(i.getLocation());
 								}
 							}
 						}
