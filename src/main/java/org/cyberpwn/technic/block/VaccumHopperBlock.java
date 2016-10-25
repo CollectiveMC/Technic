@@ -132,7 +132,17 @@ public class VaccumHopperBlock extends ConfigurableController
 									
 									ItemStack is = it.getItemStack().clone();
 									inv.addItem(is);
-									new GSound(Sound.ENDERMAN_TELEPORT, 1f, 1.5f).play(i.getLocation());
+									
+									try
+									{
+										new GSound(Sound.ENDERMAN_TELEPORT, 1f, 1.5f).play(i.getLocation());
+									}
+									
+									catch(Exception e)
+									{
+										
+									}
+									
 									i.remove();
 								}
 							}
