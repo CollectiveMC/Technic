@@ -9,6 +9,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.Inventory;
@@ -245,7 +246,7 @@ public class VaccumHopperBlock extends ConfigurableController
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOW)
 	public void on(BlockBreakEvent e)
 	{
 		if(!enable)
