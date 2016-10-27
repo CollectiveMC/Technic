@@ -231,7 +231,7 @@ public class VaccumHopperBlock extends ConfigurableController
 				ItemStack is = e.getItemInHand();
 				ItemMeta im = is.getItemMeta();
 				
-				if(im.getDisplayName().equals(C.LIGHT_PURPLE + "Vacuum Hopper") && im.getLore().get(0).equals(C.DARK_PURPLE + "Sucks up nearby items"))
+				if((im.getDisplayName().equals(C.LIGHT_PURPLE + "Vacuum Hopper") || im.getDisplayName().equals(C.LIGHT_PURPLE + "Vaccum Hopper")) && im.getLore().get(0).equals(C.DARK_PURPLE + "Sucks up nearby items"))
 				{
 					Nest.getBlock(e.getBlock()).set("ttype", "vaccum-hopper");
 					vaccums.add(e.getBlock());
