@@ -1,6 +1,7 @@
 package org.cyberpwn.technic;
 
 import java.util.Set;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -9,6 +10,7 @@ import org.bukkit.util.Vector;
 import org.cyberpwn.technic.multiblock.AlarmMultiblock;
 import org.cyberpwn.technic.multiblock.MobTurretMultiblock;
 import org.cyberpwn.technic.multiblock.SmelteryMultiblock;
+import org.phantomapi.Phantom;
 import org.phantomapi.command.Command;
 import org.phantomapi.command.CommandFilter;
 import org.phantomapi.command.PhantomCommand;
@@ -19,6 +21,7 @@ import org.phantomapi.event.MultiblockConstructEvent;
 import org.phantomapi.event.MultiblockDestroyEvent;
 import org.phantomapi.lang.GSound;
 import org.phantomapi.multiblock.Multiblock;
+import org.phantomapi.nest.Nest;
 import org.phantomapi.nms.NMSX;
 import org.phantomapi.statistics.Monitorable;
 import org.phantomapi.sync.TaskLater;
@@ -28,6 +31,7 @@ import org.phantomapi.world.Blocks;
 
 public class MultiblockController extends Controller implements Monitorable
 {
+	private MBS mbs;
 	private AlarmMultiblock alarmMultiblock;
 	private MobTurretMultiblock mobTurretMultiblock;
 	private SmelteryMultiblock smelteryMultiblock;
@@ -36,6 +40,7 @@ public class MultiblockController extends Controller implements Monitorable
 	{
 		super(parentController);
 		
+		mbs = new MBS();
 		alarmMultiblock = new AlarmMultiblock(this);
 		mobTurretMultiblock = new MobTurretMultiblock(this);
 		smelteryMultiblock = new SmelteryMultiblock(this);
@@ -48,13 +53,13 @@ public class MultiblockController extends Controller implements Monitorable
 	@Override
 	public void onStart()
 	{
-		
+		Phantom.instance().getNestController().registerScrub(mbs);
 	}
 	
 	@Override
 	public void onStop()
 	{
-		
+		Phantom.instance().getNestController().unregisterScrub(mbs);
 	}
 	
 	@CommandFilter.PlayerOnly()
@@ -96,6 +101,11 @@ public class MultiblockController extends Controller implements Monitorable
 		}
 		
 		created(e.getMultiblock());
+		
+		for(Chunk i : e.getMultiblock().getChunks())
+		{
+			Phantom.instance().getNestController().scrub(Nest.getChunk(i));
+		}
 	}
 	
 	@EventHandler
