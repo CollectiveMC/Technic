@@ -187,6 +187,8 @@ public class SmelteryMultiblock extends ConfigurableController implements Multib
 					
 					takeFuel(mb, needed);
 					new GSound(Sound.BLAZE_BREATH, 2f, 0.121f).play(mb.getLocations().pickRandom());
+					new GSound(Sound.FIRE_IGNITE, 2f, 0.121f).play(mb.getLocations().pickRandom());
+					new GSound(Sound.HORSE_JUMP, 2f, 0.121f).play(mb.getLocations().pickRandom());
 					playAnimation(mb);
 				}
 			}
@@ -195,29 +197,36 @@ public class SmelteryMultiblock extends ConfigurableController implements Multib
 	
 	public void takeFuel(Multiblock mb, int taken)
 	{
-		GMap<Block, Inventory> map = getFuelInventories(mb);
-		
-		for(Block i : map.k())
+		new S()
 		{
-			for(ItemStack j : map.get(i).getContents())
+			@Override
+			public void sync()
 			{
-				if(j != null && !j.getType().equals(Material.AIR))
+				GMap<Block, Inventory> map = getFuelInventories(mb);
+				
+				for(Block i : map.k())
 				{
-					if(isFuel(j))
+					for(ItemStack j : map.get(i).getContents())
 					{
-						int time = getFuelTime(j);
-						
-						if(time == taken * 10)
+						if(j != null && !j.getType().equals(Material.AIR))
 						{
-							ItemStack c = j.clone();
-							c.setAmount(1);
-							map.get(i).removeItem(c);
-							return;
+							if(isFuel(j))
+							{
+								int time = getFuelTime(j);
+								
+								if(time == taken * 10)
+								{
+									ItemStack c = j.clone();
+									c.setAmount(1);
+									map.get(i).removeItem(c);
+									return;
+								}
+							}
 						}
 					}
 				}
 			}
-		}
+		};
 	}
 	
 	public int getMinimumRequiredItems(Multiblock mb)
@@ -256,17 +265,24 @@ public class SmelteryMultiblock extends ConfigurableController implements Multib
 	
 	public void dispose(ItemStack is, Multiblock mb)
 	{
-		GMap<Block, Inventory> map = getOutputInventories(mb);
-		GList<Block> m = map.k().shuffleCopy();
-		
-		for(Block i : m)
+		new S()
 		{
-			if(new PhantomInventory(map.get(i)).hasSpace())
+			@Override
+			public void sync()
 			{
-				map.get(i).addItem(is);
-				return;
+				GMap<Block, Inventory> map = getOutputInventories(mb);
+				GList<Block> m = map.k().shuffleCopy();
+				
+				for(Block i : m)
+				{
+					if(new PhantomInventory(map.get(i)).hasSpace())
+					{
+						map.get(i).addItem(is);
+						return;
+					}
+				}
 			}
-		}
+		};
 	}
 	
 	public boolean hasOutputSpace(Multiblock mb)
@@ -356,9 +372,10 @@ public class SmelteryMultiblock extends ConfigurableController implements Multib
 		
 		for(int i = 0; i < 18; i++)
 		{
-			ParticleEffect.LAVA.display(0.1f, 1, gli.pickRandom(), 32.0);
+			ParticleEffect.LAVA.display(0.1f, 4, gli.pickRandom(), 32.0);
+			ParticleEffect.FLAME.display(0.1f, 2, gli.pickRandom(), 32.0);
 			ParticleEffect.SMOKE_LARGE.display(0.1f, 1, gle.pickRandom(), 32.0);
-			ParticleEffect.FLAME.display(0.1f, 4, gli.pickRandom(), 32.0);
+			ParticleEffect.FLAME.display(0.1f, 2, gli.pickRandom(), 32.0);
 		}
 	}
 	
@@ -438,15 +455,8 @@ public class SmelteryMultiblock extends ConfigurableController implements Multib
 				
 				if(b.getType().equals(Material.CHEST) || b.getType().equals(Material.TRAPPED_CHEST) || b.getType().equals(Material.HOPPER))
 				{
-					new S()
-					{
-						@Override
-						public void sync()
-						{
-							Inventory inv = ((InventoryHolder) b.getState()).getInventory();
-							map.put(b, inv);
-						}
-					};
+					Inventory inv = ((InventoryHolder) b.getState()).getInventory();
+					map.put(b, inv);
 				}
 			}
 		}
