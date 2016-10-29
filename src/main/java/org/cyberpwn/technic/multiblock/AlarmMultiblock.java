@@ -4,7 +4,9 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.util.Vector;
+import org.cyberpwn.technic.MultiblockHost;
 import org.phantomapi.Phantom;
+import org.phantomapi.async.A;
 import org.phantomapi.clust.Comment;
 import org.phantomapi.clust.ConfigurableController;
 import org.phantomapi.clust.Keyed;
@@ -13,14 +15,16 @@ import org.phantomapi.construct.Ticked;
 import org.phantomapi.lang.GSound;
 import org.phantomapi.multiblock.Multiblock;
 import org.phantomapi.multiblock.MultiblockStructure;
+import org.phantomapi.util.T;
 import org.phantomapi.vfx.ParticleEffect;
 import org.phantomapi.world.MaterialBlock;
 
 @Ticked(0)
-public class AlarmMultiblock extends ConfigurableController
+public class AlarmMultiblock extends ConfigurableController implements MultiblockHost
 {
 	private MultiblockStructure structure;
 	private int delay;
+	private double demand;
 	
 	@Comment("Should this structure be enabled?")
 	@Keyed("enable")
@@ -53,6 +57,7 @@ public class AlarmMultiblock extends ConfigurableController
 			return;
 		}
 		
+		demand = 0;
 		delay = interval;
 		
 		structure = new MultiblockStructure("alarm");
@@ -87,19 +92,37 @@ public class AlarmMultiblock extends ConfigurableController
 		
 		if(delay <= 0)
 		{
+			T t = new T()
+			{
+				@Override
+				public void onStop(long nsTime, double msTime)
+				{
+					demand = msTime;
+				}
+			};
+			
 			for(Multiblock i : Phantom.instance().getMultiblockRegistryController().getMultiblocks("alarm"))
 			{
-				if(i.getMapping().get(new Vector(0, 0, 0)).getBlock().isBlockIndirectlyPowered())
+				new A()
 				{
-					Location l = i.getMapping().get(new Vector(0, 3, 0));
-					new GSound(Sound.valueOf(sound), (float) volume, (float) pitch).play(l);
-					
-					for(Location j : i.getLocations())
+					@Override
+					public void async()
 					{
-						ParticleEffect.SMOKE_NORMAL.display(0.2f, 3, j.clone().add(0.5, 0.5, 0.5), 64);
+						if(i.getMapping().get(new Vector(0, 0, 0)).getBlock().isBlockIndirectlyPowered())
+						{
+							Location l = i.getMapping().get(new Vector(0, 3, 0));
+							new GSound(Sound.valueOf(sound), (float) volume, (float) pitch).play(l);
+							
+							for(Location j : i.getLocations())
+							{
+								ParticleEffect.SMOKE_NORMAL.display(0.2f, 3, j.clone().add(0.5, 0.5, 0.5), 64);
+							}
+						}
 					}
-				}
+				};
 			}
+			
+			t.stop();
 			
 			delay = interval;
 		}
@@ -115,5 +138,17 @@ public class AlarmMultiblock extends ConfigurableController
 	public void onStop()
 	{
 		
+	}
+	
+	@Override
+	public MultiblockStructure getStructure()
+	{
+		return structure;
+	}
+	
+	@Override
+	public double getDemand()
+	{
+		return demand;
 	}
 }
