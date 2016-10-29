@@ -27,6 +27,7 @@ import org.phantomapi.lang.GSound;
 import org.phantomapi.multiblock.MB;
 import org.phantomapi.multiblock.Multiblock;
 import org.phantomapi.multiblock.MultiblockStructure;
+import org.phantomapi.sync.S;
 import org.phantomapi.util.T;
 import org.phantomapi.vfx.ParticleEffect;
 import org.phantomapi.world.MaterialBlock;
@@ -102,7 +103,15 @@ public class SmelteryMultiblock extends ConfigurableController implements Multib
 					@Override
 					public void async()
 					{
-						tryCycle(i);
+						try
+						{
+							tryCycle(i);
+						}
+						
+						catch(Exception e)
+						{
+							e.printStackTrace();
+						}
 					}
 				};
 			}
@@ -429,8 +438,15 @@ public class SmelteryMultiblock extends ConfigurableController implements Multib
 				
 				if(b.getType().equals(Material.CHEST) || b.getType().equals(Material.TRAPPED_CHEST) || b.getType().equals(Material.HOPPER))
 				{
-					Inventory inv = ((InventoryHolder) b.getState()).getInventory();
-					map.put(b, inv);
+					new S()
+					{
+						@Override
+						public void sync()
+						{
+							Inventory inv = ((InventoryHolder) b.getState()).getInventory();
+							map.put(b, inv);
+						}
+					};
 				}
 			}
 		}
