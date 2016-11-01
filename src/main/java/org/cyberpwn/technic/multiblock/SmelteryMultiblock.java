@@ -110,7 +110,7 @@ public class SmelteryMultiblock extends ConfigurableController implements Multib
 						
 						catch(Exception e)
 						{
-							e.printStackTrace();
+							
 						}
 					}
 				};
