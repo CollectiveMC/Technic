@@ -17,6 +17,7 @@ import org.phantomapi.command.PhantomCommand;
 import org.phantomapi.command.PhantomSender;
 import org.phantomapi.construct.Controllable;
 import org.phantomapi.construct.Controller;
+import org.phantomapi.construct.ControllerMessage;
 import org.phantomapi.event.MultiblockConstructEvent;
 import org.phantomapi.event.MultiblockDestroyEvent;
 import org.phantomapi.lang.GSound;
@@ -106,6 +107,11 @@ public class MultiblockController extends Controller implements Monitorable
 		{
 			Phantom.instance().getNestController().scrub(Nest.getChunk(i));
 		}
+		
+		ControllerMessage cm = new ControllerMessage(this);
+		cm.set("e.player", e.getPlayer().getName());
+		cm.set("e.level", e.getMultiblock().getLocations().size());
+		sendMessage("SkillConstruction", cm);
 	}
 	
 	@EventHandler
