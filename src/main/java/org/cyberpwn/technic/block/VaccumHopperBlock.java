@@ -254,13 +254,21 @@ public class VaccumHopperBlock extends ConfigurableController
 			return;
 		}
 		
-		if(Nest.getBlock(e.getBlock()).contains("ttype") && Nest.getBlock(e.getBlock()).getString("ttype").equals("vaccum-hopper"))
+		try
 		{
-			e.setCancelled(true);
-			Nest.getBlock(e.getBlock()).remove("ttype");
-			vaccums.remove(e.getBlock());
-			e.getBlock().setType(Material.AIR);
-			e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), getItem());
+			if(Nest.getBlock(e.getBlock()).contains("ttype") && Nest.getBlock(e.getBlock()).getString("ttype").equals("vaccum-hopper"))
+			{
+				e.setCancelled(true);
+				Nest.getBlock(e.getBlock()).remove("ttype");
+				vaccums.remove(e.getBlock());
+				e.getBlock().setType(Material.AIR);
+				e.getBlock().getWorld().dropItem(e.getBlock().getLocation(), getItem());
+			}
+		}
+		
+		catch(Exception x)
+		{
+			
 		}
 	}
 	
