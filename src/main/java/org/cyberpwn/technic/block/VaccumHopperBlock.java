@@ -16,6 +16,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.phantomapi.async.A;
 import org.phantomapi.clust.Comment;
 import org.phantomapi.clust.ConfigurableController;
 import org.phantomapi.clust.Keyed;
@@ -29,7 +30,6 @@ import org.phantomapi.lang.GSound;
 import org.phantomapi.nest.Nest;
 import org.phantomapi.nest.NestedBlock;
 import org.phantomapi.nest.NestedChunk;
-import org.phantomapi.sync.ExecutiveRunnable;
 import org.phantomapi.util.C;
 import org.phantomapi.util.Chunks;
 import org.phantomapi.vfx.ParticleEffect;
@@ -92,66 +92,69 @@ public class VaccumHopperBlock extends ConfigurableController
 		{
 			delay = interval;
 			
-			vaccums.schedule(new ExecutiveRunnable<Block>()
+			new A()
 			{
 				@Override
-				public void run()
+				public void async()
 				{
-					Block next = next();
-					
-					if(!next.getType().equals(Material.HOPPER))
+					for(Block vv : vaccums.copy())
 					{
-						return;
-					}
-					
-					ParticleEffect.PORTAL.display(0.4f, 4, next.getLocation().add(0.5, 0.5, 0.5), 32);
-					Hopper h = (Hopper) next.getState();
-					Inventory inv = h.getInventory();
-					
-					try
-					{
-						if(new PhantomInventory(inv).hasSpace())
+						Block next = vv;
+						
+						if(!next.getType().equals(Material.HOPPER))
 						{
-							Area a = new Area(next.getLocation().add(0.5, 0.5, 0.5), range);
-							
-							for(Entity i : a.getNearbyEntities())
+							return;
+						}
+						
+						ParticleEffect.PORTAL.display(0.4f, 4, next.getLocation().add(0.5, 0.5, 0.5), 32);
+						Hopper h = (Hopper) next.getState();
+						Inventory inv = h.getInventory();
+						
+						try
+						{
+							if(new PhantomInventory(inv).hasSpace())
 							{
-								if(i.getType().equals(EntityType.DROPPED_ITEM))
+								Area a = new Area(next.getLocation().add(0.5, 0.5, 0.5), range);
+								
+								for(Entity i : a.getNearbyEntities())
 								{
-									if(marked.contains(i))
+									if(i.getType().equals(EntityType.DROPPED_ITEM))
 									{
-										continue;
+										if(marked.contains(i))
+										{
+											continue;
+										}
+										
+										marked.add(i);
+										Item it = (Item) i;
+										
+										if(it.getItemStack().getType().equals(Material.HOPPER))
+										{
+											continue;
+										}
+										
+										ItemStack is = it.getItemStack().clone();
+										
+										if(i.isDead())
+										{
+											continue;
+										}
+										
+										inv.addItem(is);
+										i.remove();
+										new GSound(Sound.ENDERMAN_TELEPORT, 1f, 1.5f).play(i.getLocation());
 									}
-									
-									marked.add(i);
-									Item it = (Item) i;
-									
-									if(it.getItemStack().getType().equals(Material.HOPPER))
-									{
-										continue;
-									}
-									
-									ItemStack is = it.getItemStack().clone();
-									
-									if(i.isDead())
-									{
-										continue;
-									}
-									
-									inv.addItem(is);
-									i.remove();
-									new GSound(Sound.ENDERMAN_TELEPORT, 1f, 1.5f).play(i.getLocation());
 								}
 							}
 						}
-					}
-					
-					catch(Exception ex)
-					{
 						
+						catch(Exception ex)
+						{
+							
+						}
 					}
 				}
-			});
+			};
 		}
 	}
 	

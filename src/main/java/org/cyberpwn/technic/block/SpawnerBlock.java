@@ -54,7 +54,7 @@ import org.phantomapi.world.MaterialBlock;
 import org.phantomapi.world.W;
 import de.dustplanet.util.SilkUtil;
 
-@Ticked(0)
+@Ticked(20)
 @SyncStart
 public class SpawnerBlock extends ConfigurableController
 {
@@ -134,22 +134,21 @@ public class SpawnerBlock extends ConfigurableController
 			{
 				CreatureSpawner cs = (CreatureSpawner) i.getState();
 				
-				if(M.r(getSpeed(i) / (levels * interval)))
+				try
 				{
-					try
+					cs.setDelay((int) (cs.getDelay() - (1 + (getSpeed(i) * 60))));
+					
+					if(cs.getDelay() < 0)
 					{
-						cs.setDelay((int) (cs.getDelay() - (1 + getSpeed(i))));
-						
-						if(M.r(0.3))
-						{
-							ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (8 + getSpeed(i)), i.getLocation().add(0.5, 0.5, 0.5), 12);
-						}
+						cs.setDelay(10);
 					}
 					
-					catch(Exception e)
-					{
-						mapped.remove(i);
-					}
+					ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (8 + getSpeed(i)), i.getLocation().add(0.5, 0.5, 0.5), 12);
+				}
+				
+				catch(Exception e)
+				{
+					mapped.remove(i);
 				}
 			}
 			
