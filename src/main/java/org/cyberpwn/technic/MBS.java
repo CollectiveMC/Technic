@@ -36,7 +36,7 @@ public class MBS implements NestScrub
 		
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			
 		}
 	}
 	
