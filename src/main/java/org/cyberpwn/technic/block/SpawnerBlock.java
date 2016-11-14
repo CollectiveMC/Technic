@@ -462,9 +462,7 @@ public class SpawnerBlock extends ConfigurableController
 		
 		if(rate >= 0.0)
 		{
-			short id = s.getSpawnerEntityID(e.getClickedBlock());
-			String name = s.getCreatureName(id);
-			Window w = new PhantomWindow(C.DARK_RED + name + " Accelerator" + C.DARK_GRAY + " (" + F.pc(rate + 1.0) + ")", e.getPlayer());
+			Window w = new PhantomWindow(C.DARK_RED + "Accelerator" + C.DARK_GRAY + " (" + F.pc(rate + 1.0) + ")", e.getPlayer());
 			
 			for(int i = 0; i < levels; i++)
 			{
