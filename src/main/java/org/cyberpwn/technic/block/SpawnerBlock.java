@@ -8,6 +8,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,6 +16,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.SpawnerSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -38,8 +40,8 @@ import org.phantomapi.gui.PhantomWindow;
 import org.phantomapi.gui.Slot;
 import org.phantomapi.gui.Window;
 import org.phantomapi.lang.GList;
-import org.phantomapi.lang.GListAdapter;
 import org.phantomapi.lang.GLocation;
+import org.phantomapi.lang.GMap;
 import org.phantomapi.lang.GSound;
 import org.phantomapi.lang.GTime;
 import org.phantomapi.nest.Nest;
@@ -92,6 +94,7 @@ public class SpawnerBlock extends ConfigurableController
 	
 	private SilkUtil s;
 	private GList<Block> mapped;
+	private GMap<Block, Integer> delay;
 	
 	public SpawnerBlock(Controllable parentController)
 	{
@@ -99,6 +102,7 @@ public class SpawnerBlock extends ConfigurableController
 		
 		s = SilkUtil.hookIntoSilkSpanwers();
 		mapped = new GList<Block>();
+		delay = new GMap<Block, Integer>();
 	}
 	
 	@Override
@@ -116,6 +120,16 @@ public class SpawnerBlock extends ConfigurableController
 	@Override
 	public void onTick()
 	{
+		for(Block i : delay.k())
+		{
+			delay.put(i, delay.get(i) - 20);
+			
+			if(delay.get(i) <= 0)
+			{
+				delay.remove(i);
+			}
+		}
+		
 		for(Block i : mapped.copy())
 		{
 			if(Nest.getChunk(i.getChunk()) == null)
@@ -136,19 +150,27 @@ public class SpawnerBlock extends ConfigurableController
 				
 				try
 				{
-					cs.setDelay((int) (cs.getDelay() - (1 + (getSpeed(i) * 60))));
-					
-					if(cs.getDelay() < 0)
-					{
-						cs.setDelay(10);
-					}
-					
 					ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (8 + getSpeed(i)), i.getLocation().add(0.5, 0.5, 0.5), 12);
+					
+					if(!delay.containsKey(i))
+					{
+						double speed = getSpeed(i) + 1.0;
+						
+						if(speed > 1)
+						{
+							delay.put(i, (int) (100.0 / speed));
+							EntityType et = cs.getSpawnedType();
+							Location l = i.getLocation().add((Math.random() * 5) - 2.5, 1, (Math.random() * 5) - 2.5);
+							i.getWorld().spawn(l, et.getEntityClass());
+							ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (28 + getSpeed(i)), i.getLocation().add(0.5, 0.5, 0.5), 12);
+							ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (28 + getSpeed(i)), l, 12);
+						}
+					}
 				}
 				
 				catch(Exception e)
 				{
-					mapped.remove(i);
+					
 				}
 			}
 			
@@ -210,6 +232,23 @@ public class SpawnerBlock extends ConfigurableController
 		return false;
 	}
 	
+	@EventHandler
+	public void on(SpawnerSpawnEvent e)
+	{
+		try
+		{
+			if(!mapped.contains(e.getSpawner().getBlock()))
+			{
+				mapped.add(e.getSpawner().getBlock());
+			}
+		}
+		
+		catch(Exception ex)
+		{
+			
+		}
+	}
+	
 	public double getValue(Block block)
 	{
 		Double result = null;
@@ -255,19 +294,16 @@ public class SpawnerBlock extends ConfigurableController
 	@EventHandler
 	public void on(NestChunkLoadEvent e)
 	{
-		mapped.add(new GListAdapter<GLocation, Block>()
+		for(GLocation i : e.getNestedChunk().getBlocks().k())
 		{
-			@Override
-			public Block onAdapt(GLocation from)
+			if(i.toLocation().getBlock().getType().equals(Material.MOB_SPAWNER))
 			{
-				if(!from.toLocation().getBlock().getType().equals(Material.MOB_SPAWNER))
+				if(!mapped.contains(i.toLocation().getBlock()))
 				{
-					return null;
+					mapped.add(i.toLocation().getBlock());
 				}
-				
-				return from.toLocation().getBlock();
 			}
-		}.adapt(e.getNestedChunk().getBlocks().k()));
+		}
 	}
 	
 	@EventHandler
@@ -462,6 +498,11 @@ public class SpawnerBlock extends ConfigurableController
 		
 		if(rate >= 0.0)
 		{
+			if(!mapped.contains(e.getClickedBlock()))
+			{
+				mapped.add(e.getClickedBlock());
+			}
+			
 			Window w = new PhantomWindow(C.DARK_RED + "Accelerator" + C.DARK_GRAY + " (" + F.pc(rate + 1.0) + ")", e.getPlayer());
 			
 			for(int i = 0; i < levels; i++)
