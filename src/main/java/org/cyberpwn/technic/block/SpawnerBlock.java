@@ -72,6 +72,10 @@ public class SpawnerBlock extends ConfigurableController
 	@Keyed("spawner.interval")
 	public double interval = 0.5;
 	
+	@Comment("Base spawner delay")
+	@Keyed("spawner.base")
+	public int delayx = 400;
+	
 	@Comment("Spawner price node for what shop")
 	@Keyed("spawner.price-node")
 	public String node = "shop";
@@ -158,7 +162,7 @@ public class SpawnerBlock extends ConfigurableController
 						
 						if(speed > 1)
 						{
-							delay.put(i, (int) (100.0 / speed));
+							delay.put(i, (int) ((double) delayx / speed));
 							EntityType et = cs.getSpawnedType();
 							Location l = i.getLocation().add((Math.random() * 5) - 2.5, 1, (Math.random() * 5) - 2.5);
 							i.getWorld().spawn(l, et.getEntityClass());
