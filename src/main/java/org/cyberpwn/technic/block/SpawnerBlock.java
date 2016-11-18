@@ -99,6 +99,7 @@ public class SpawnerBlock extends ConfigurableController
 	private SilkUtil s;
 	private GList<Block> mapped;
 	private GMap<Block, Integer> delay;
+	private GMap<Block, Location> lastRealPosition;
 	
 	public SpawnerBlock(Controllable parentController)
 	{
@@ -107,6 +108,7 @@ public class SpawnerBlock extends ConfigurableController
 		s = SilkUtil.hookIntoSilkSpanwers();
 		mapped = new GList<Block>();
 		delay = new GMap<Block, Integer>();
+		lastRealPosition = new GMap<Block, Location>();
 	}
 	
 	@Override
@@ -162,12 +164,15 @@ public class SpawnerBlock extends ConfigurableController
 						
 						if(speed > 1)
 						{
-							delay.put(i, (int) ((double) delayx / speed));
-							EntityType et = cs.getSpawnedType();
-							Location l = i.getLocation().add((Math.random() * 5) - 2.5, 1, (Math.random() * 5) - 2.5);
-							i.getWorld().spawn(l, et.getEntityClass());
-							ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (28 + getSpeed(i)), i.getLocation().add(0.5, 0.5, 0.5), 12);
-							ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (28 + getSpeed(i)), l, 12);
+							if(lastRealPosition.containsKey(i))
+							{
+								delay.put(i, (int) ((double) delayx / speed));
+								EntityType et = cs.getSpawnedType();
+								Location l = lastRealPosition.get(i);
+								i.getWorld().spawn(l, et.getEntityClass());
+								ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (28 + getSpeed(i)), i.getLocation().add(0.5, 0.5, 0.5), 12);
+								ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (28 + getSpeed(i)), l, 12);
+							}
 						}
 					}
 				}
@@ -241,6 +246,8 @@ public class SpawnerBlock extends ConfigurableController
 	{
 		try
 		{
+			lastRealPosition.put(e.getSpawner().getBlock(), e.getLocation());
+			
 			if(!mapped.contains(e.getSpawner().getBlock()))
 			{
 				mapped.add(e.getSpawner().getBlock());
