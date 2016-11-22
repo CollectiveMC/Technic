@@ -8,6 +8,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -169,7 +170,9 @@ public class SpawnerBlock extends ConfigurableController
 								delay.put(i, (int) ((double) delayx / speed));
 								EntityType et = cs.getSpawnedType();
 								Location l = lastRealPosition.get(i);
-								i.getWorld().spawn(l, et.getEntityClass());
+								Entity e = i.getWorld().spawn(l, et.getEntityClass());
+								SpawnerSpawnEvent sse = new SpawnerSpawnEvent(e, cs);
+								callEvent(sse);
 								ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (28 + getSpeed(i)), i.getLocation().add(0.5, 0.5, 0.5), 12);
 								ParticleEffect.FLAME.display((float) getSpeed(i) / 35, (int) (28 + getSpeed(i)), l, 12);
 							}
