@@ -26,6 +26,8 @@ import org.phantomapi.clust.Comment;
 import org.phantomapi.clust.ConfigurableController;
 import org.phantomapi.clust.DataCluster;
 import org.phantomapi.clust.Keyed;
+import org.phantomapi.command.PhantomCommand;
+import org.phantomapi.command.PhantomSender;
 import org.phantomapi.construct.Controllable;
 import org.phantomapi.construct.ControllerMessage;
 import org.phantomapi.construct.Ticked;
@@ -46,14 +48,19 @@ import org.phantomapi.lang.GMap;
 import org.phantomapi.lang.GSound;
 import org.phantomapi.lang.GTime;
 import org.phantomapi.nest.Nest;
+import org.phantomapi.nms.NMSX;
 import org.phantomapi.sfx.Audio;
 import org.phantomapi.sync.TaskLater;
 import org.phantomapi.util.C;
 import org.phantomapi.util.F;
+import org.phantomapi.util.Inventories;
 import org.phantomapi.util.M;
+import org.phantomapi.util.P;
 import org.phantomapi.vfx.ParticleEffect;
+import org.phantomapi.world.Area;
 import org.phantomapi.world.Cuboid;
 import org.phantomapi.world.MaterialBlock;
+import org.phantomapi.world.RayTrace;
 import org.phantomapi.world.W;
 import de.dustplanet.util.SilkUtil;
 
@@ -100,6 +107,7 @@ public class SpawnerBlock extends ConfigurableController
 	private SilkUtil s;
 	private GList<Block> mapped;
 	private GMap<Block, Integer> delay;
+	private GMap<Block, Player> players;
 	private GMap<Block, Location> lastRealPosition;
 	
 	public SpawnerBlock(Controllable parentController)
@@ -110,6 +118,7 @@ public class SpawnerBlock extends ConfigurableController
 		mapped = new GList<Block>();
 		delay = new GMap<Block, Integer>();
 		lastRealPosition = new GMap<Block, Location>();
+		players = new GMap<Block, Player>();
 	}
 	
 	@Override
@@ -127,6 +136,14 @@ public class SpawnerBlock extends ConfigurableController
 	@Override
 	public void onTick()
 	{
+		for(Block i : players.k())
+		{
+			if(!P.hasInventoryOpen(players.get(i)))
+			{
+				players.remove(i);
+			}
+		}
+		
 		for(Block i : delay.k())
 		{
 			delay.put(i, delay.get(i) - 20);
@@ -229,16 +246,24 @@ public class SpawnerBlock extends ConfigurableController
 	
 	public boolean isGraced(Block block)
 	{
-		if(block.getType().equals(Material.MOB_SPAWNER) && Nest.getBlock(block).contains("t.s.m"))
+		try
 		{
-			long es = 1000 * graceSeconds;
-			
-			if(Nest.getBlock(block).getLong("t.s.m") + es - M.ms() < 0)
+			if(block.getType().equals(Material.MOB_SPAWNER) && Nest.getBlock(block).contains("t.s.m"))
 			{
-				return false;
+				long es = 1000 * graceSeconds;
+				
+				if(Nest.getBlock(block).contains("t.s.m") && Nest.getBlock(block).getLong("t.s.m") + es - M.ms() < 0)
+				{
+					return false;
+				}
+				
+				return Nest.getBlock(block).getLong("t.s.m") + es > M.ms();
 			}
+		}
+		
+		catch(Exception e)
+		{
 			
-			return Nest.getBlock(block).getLong("t.s.m") + es > M.ms();
 		}
 		
 		return false;
@@ -336,6 +361,7 @@ public class SpawnerBlock extends ConfigurableController
 		{
 			Nest.getBlock(e.getBlock()).set("t.s.v", 0.0);
 			Nest.getBlock(e.getBlock()).set("t.s.m", M.ms());
+			Nest.getBlock(e.getBlock()).set("t.s.o", e.getPlayer().getUniqueId().toString());
 			mapped.add(e.getBlock());
 			ItemStack is = e.getItemInHand();
 			
@@ -371,6 +397,114 @@ public class SpawnerBlock extends ConfigurableController
 			{
 				
 			}
+		}
+	}
+	
+	public void onTryBreak(PhantomSender sender, PhantomCommand cmd)
+	{
+		Player p = sender.getPlayer();
+		Location s = p.getLocation().add(0, 1.7, 0);
+		
+		new RayTrace(s, p.getLocation().getDirection(), (double) 6, 0.2)
+		{
+			@Override
+			public void onTrace(Location location)
+			{
+				if(location.getBlock().getType().equals(Material.MOB_SPAWNER))
+				{
+					tryBreak(sender.getPlayer(), location.getBlock());
+					stop();
+				}
+			}
+		}.trace();
+	}
+	
+	public void tryBreak(Player p, Block b)
+	{
+		if(p.getGameMode().equals(GameMode.SURVIVAL))
+		{
+			if(b.getType().equals(Material.MOB_SPAWNER))
+			{
+				if(Nest.getBlock(b).contains("t.s.o"))
+				{
+					if(p.getUniqueId().toString().equals(Nest.getBlock(b).getString("t.s.o")))
+					{
+						ItemStack is = p.getItemInHand();
+						
+						if(Inventories.hasSpace(p.getInventory()))
+						{
+							if(is != null && is.getEnchantments().containsKey(Enchantment.SILK_TOUCH))
+							{
+								on(new BlockBreakEvent(b, p));
+								
+								new TaskLater()
+								{
+									@Override
+									public void run()
+									{
+										Area a = new Area(b.getLocation(), 1.5);
+										
+										for(Entity i : a.getNearbyEntities())
+										{
+											if(i instanceof Item)
+											{
+												Item item = (Item) i;
+												
+												if(item.getItemStack().getType().equals(Material.MOB_SPAWNER))
+												{
+													ItemStack is = item.getItemStack().clone();
+													
+													Area a2 = new Area(b.getLocation(), 24);
+													
+													for(Player j : a2.getNearbyPlayers())
+													{
+														NMSX.showPickup(j, p, item);
+													}
+													
+													new GSound(Sound.ITEM_PICKUP).play(b.getLocation());
+													
+													item.remove();
+													p.getInventory().addItem(is);
+												}
+											}
+										}
+									}
+								};
+							}
+							
+							else
+							{
+								p.sendMessage(C.RED + "Please hold a silktouch pickaxe to use that command.");
+							}
+						}
+						
+						else
+						{
+							p.sendMessage(C.RED + "You do not have enough inventory space.");
+						}
+					}
+					
+					else
+					{
+						p.sendMessage(C.RED + "You do not own that spawner.");
+					}
+				}
+				
+				else
+				{
+					p.sendMessage(C.RED + "You do not own that spawner.");
+				}
+			}
+			
+			else
+			{
+				p.sendMessage(C.RED + "Must be looking at a mob spawner.");
+			}
+		}
+		
+		else
+		{
+			p.sendMessage(C.RED + "Must be in survival mode.");
 		}
 	}
 	
@@ -497,12 +631,13 @@ public class SpawnerBlock extends ConfigurableController
 			mapped.remove(e.getBlock());
 			Nest.getBlock(e.getBlock()).remove("t.s.v");
 			Nest.getBlock(e.getBlock()).remove("t.s.m");
+			Nest.getBlock(e.getBlock()).remove("t.s.o");
 		}
 	}
 	
 	public void okm(PlayerInteractEvent e)
 	{
-		if(Nest.getBlock(e.getClickedBlock()).contains("s") && !Nest.getBlock(e.getClickedBlock()).contains("t.s.v"))
+		if(!Nest.getBlock(e.getClickedBlock()).contains("t.s.v"))
 		{
 			Nest.getBlock(e.getClickedBlock()).set("t.s.v", 0.0);
 			Nest.getBlock(e.getClickedBlock()).set("t.s.m", 0.0);
@@ -517,7 +652,22 @@ public class SpawnerBlock extends ConfigurableController
 				mapped.add(e.getClickedBlock());
 			}
 			
-			Window w = new PhantomWindow(C.DARK_RED + "Accelerator" + C.DARK_GRAY + " (" + F.pc(rate + 1.0) + ")", e.getPlayer());
+			if(players.containsKey(e.getClickedBlock()))
+			{
+				e.getPlayer().sendMessage(C.RED + "Somneone is already using this right now.");
+				return;
+			}
+			
+			Window w = new PhantomWindow(C.DARK_RED + "Accelerator" + C.DARK_GRAY + " (" + F.pc(rate + 1.0) + ")", e.getPlayer())
+			{
+				@Override
+				public void onClose(Window w, Player p)
+				{
+					players.remove(e.getClickedBlock());
+				}
+			};
+			
+			players.put(e.getClickedBlock(), e.getPlayer());
 			
 			for(int i = 0; i < levels; i++)
 			{
@@ -541,7 +691,7 @@ public class SpawnerBlock extends ConfigurableController
 								a.add(new GSound(Sound.CLICK, 1f, (float) (speed / (interval * levels) * 1.8)));
 								a.play(p);
 								p.sendMessage(C.RED + "Spawner is now " + F.pc(speed) + " faster");
-								w.close();
+								p.closeInventory();
 							}
 							
 							else
@@ -582,6 +732,19 @@ public class SpawnerBlock extends ConfigurableController
 				return;
 			}
 			
+			if(e.getClickedBlock().getType().equals(Material.MOB_SPAWNER) && e.getAction().equals(Action.LEFT_CLICK_BLOCK))
+			{
+				if(Nest.getBlock(e.getClickedBlock()).contains("t.s.o"))
+				{
+					if(!Nest.getBlock(e.getClickedBlock()).getString("t.s.o").equals(e.getPlayer().getUniqueId().toString()))
+					{
+						e.setCancelled(true);
+						e.getPlayer().sendMessage(C.RED + "You do not own this spawner");
+						return;
+					}
+				}
+			}
+			
 			if(e.getClickedBlock().getType().equals(Material.MOB_SPAWNER) && e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
 			{
 				if(e.getPlayer().isSneaking())
@@ -596,7 +759,7 @@ public class SpawnerBlock extends ConfigurableController
 			
 			else if(e.getClickedBlock().getType().equals(Material.MOB_SPAWNER) && e.getAction().equals(Action.LEFT_CLICK_BLOCK))
 			{
-				if(Nest.getBlock(e.getClickedBlock()).contains("s") && Nest.getBlock(e.getClickedBlock()).contains("t.s.v"))
+				if(Nest.getBlock(e.getClickedBlock()).contains("t.s.v"))
 				{
 					if(Nest.getBlock(e.getClickedBlock()).contains("t.s.m"))
 					{

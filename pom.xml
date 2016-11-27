@@ -116,7 +116,7 @@
 		<dependency>
 			<groupId>org.cyberpwn</groupId>
 			<artifactId>phantom</artifactId>
-			<version>E6</version>
+			<version>K4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.spigotmc</groupId>

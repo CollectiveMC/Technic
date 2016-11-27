@@ -32,4 +32,14 @@ public class BlockController extends Controller
 	{
 		
 	}
+	
+	public VaccumHopperBlock getVaccumHopperBlock()
+	{
+		return vaccumHopperBlock;
+	}
+	
+	public SpawnerBlock getSpawnerController()
+	{
+		return spawnerController;
+	}
 }
