@@ -20,6 +20,8 @@ public class MBS implements NestScrub
 		{
 			DataCluster cc = nc.crop("mb");
 			
+			Technic.instance().getTechnicController().getBlockController().getSpawnerController().verify(b);
+			
 			for(String i : cc.keys())
 			{
 				int id = Integer.valueOf(i.split("-")[1]);

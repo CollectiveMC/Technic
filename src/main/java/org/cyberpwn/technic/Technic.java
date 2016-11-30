@@ -38,4 +38,14 @@ public class Technic extends Ghost
 	{
 		return instance;
 	}
+	
+	public static Technic getInstance()
+	{
+		return instance;
+	}
+	
+	public TechnicController getTechnicController()
+	{
+		return controller;
+	}
 }

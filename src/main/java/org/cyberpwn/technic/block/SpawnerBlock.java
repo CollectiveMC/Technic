@@ -48,6 +48,7 @@ import org.phantomapi.lang.GMap;
 import org.phantomapi.lang.GSound;
 import org.phantomapi.lang.GTime;
 import org.phantomapi.nest.Nest;
+import org.phantomapi.nest.NestedBlock;
 import org.phantomapi.nms.NMSX;
 import org.phantomapi.sfx.Audio;
 import org.phantomapi.sync.TaskLater;
@@ -885,5 +886,18 @@ public class SpawnerBlock extends ConfigurableController
 		}
 		
 		return value.intValue();
+	}
+	
+	public void verify(NestedBlock b)
+	{
+		if(!b.getLocation().toLocation().getBlock().getType().equals(Material.MOB_SPAWNER) && b.contains("t.s.v"))
+		{
+			Block block = b.getLocation().toLocation().getBlock();
+			mapped.remove(block);
+			delay.remove(block);
+			Nest.getBlock(block).remove("t.s.v");
+			Nest.getBlock(block).remove("t.s.m");
+			Nest.getBlock(block).remove("t.s.o");
+		}
 	}
 }

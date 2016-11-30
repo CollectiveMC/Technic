@@ -51,4 +51,14 @@ public class TechnicController extends CommandController
 	{
 		return new GList<String>().qadd("bs");
 	}
+	
+	public MultiblockController getMultiblockController()
+	{
+		return multiblockController;
+	}
+	
+	public BlockController getBlockController()
+	{
+		return blockController;
+	}
 }
