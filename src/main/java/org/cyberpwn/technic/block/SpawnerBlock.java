@@ -762,17 +762,20 @@ public class SpawnerBlock extends ConfigurableController
 			{
 				if(Nest.getBlock(e.getClickedBlock()).contains("t.s.v"))
 				{
-					if(Nest.getBlock(e.getClickedBlock()).contains("t.s.m"))
+					if(chargeMines)
 					{
-						if(isGraced(e.getClickedBlock()))
+						if(Nest.getBlock(e.getClickedBlock()).contains("t.s.m"))
 						{
-							e.getPlayer().sendMessage(C.GREEN + "Free to mine for " + getGrace(e.getClickedBlock()).to());
-							return;
+							if(isGraced(e.getClickedBlock()))
+							{
+								e.getPlayer().sendMessage(C.GREEN + "Free to mine for " + getGrace(e.getClickedBlock()).to());
+								return;
+							}
 						}
+						
+						int cost = (int) (0.25 * getPrice(e.getClickedBlock()));
+						e.getPlayer().sendMessage(C.RED + "You will spend $" + F.f(cost) + " if you mine this.");
 					}
-					
-					int cost = (int) (0.25 * getPrice(e.getClickedBlock()));
-					e.getPlayer().sendMessage(C.RED + "You will spend $" + F.f(cost) + " if you mine this.");
 				}
 			}
 		}
