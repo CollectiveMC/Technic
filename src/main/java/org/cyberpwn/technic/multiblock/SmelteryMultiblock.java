@@ -14,7 +14,6 @@ import org.bukkit.inventory.Recipe;
 import org.bukkit.util.Vector;
 import org.cyberpwn.technic.MultiblockHost;
 import org.cyberpwn.technic.ST;
-import org.phantomapi.async.A;
 import org.phantomapi.clust.Comment;
 import org.phantomapi.clust.ConfigurableController;
 import org.phantomapi.clust.Keyed;
@@ -48,6 +47,10 @@ public class SmelteryMultiblock extends ConfigurableController implements Multib
 	@Comment("The interval in ticks to screech")
 	@Keyed("options.interval")
 	public int interval = 15;
+	
+	@Comment("The Max machines to tick per cycle")
+	@Keyed("options.max")
+	public int maxPerTick = 8;
 	
 	public SmelteryMultiblock(Controllable parentController)
 	{
@@ -96,24 +99,14 @@ public class SmelteryMultiblock extends ConfigurableController implements Multib
 				}
 			};
 			
-			for(Multiblock i : MB.getInstances("smeltery"))
+			GList<Multiblock> k = MB.getInstances("smeltery").shuffleCopy();
+			int l = 0;
+			
+			while(!k.isEmpty() && l < maxPerTick)
 			{
-				new A()
-				{
-					@Override
-					public void async()
-					{
-						try
-						{
-							tryCycle(i);
-						}
-						
-						catch(Exception e)
-						{
-							
-						}
-					}
-				};
+				Multiblock i = k.pop();
+				tryCycle(i);
+				l++;
 			}
 			
 			t.stop();
