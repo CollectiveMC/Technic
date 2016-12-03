@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.util.Vector;
 import org.cyberpwn.technic.multiblock.AlarmMultiblock;
 import org.cyberpwn.technic.multiblock.MobTurretMultiblock;
+import org.cyberpwn.technic.multiblock.NetherTurretMultiblock;
 import org.cyberpwn.technic.multiblock.SmelteryMultiblock;
 import org.phantomapi.Phantom;
 import org.phantomapi.command.Command;
@@ -36,6 +37,7 @@ public class MultiblockController extends Controller implements Monitorable
 	private AlarmMultiblock alarmMultiblock;
 	private MobTurretMultiblock mobTurretMultiblock;
 	private SmelteryMultiblock smelteryMultiblock;
+	private NetherTurretMultiblock netherTurretMultiblock;
 	
 	public MultiblockController(Controllable parentController)
 	{
@@ -45,10 +47,12 @@ public class MultiblockController extends Controller implements Monitorable
 		alarmMultiblock = new AlarmMultiblock(this);
 		mobTurretMultiblock = new MobTurretMultiblock(this);
 		smelteryMultiblock = new SmelteryMultiblock(this);
+		netherTurretMultiblock = new NetherTurretMultiblock(this);
 		
 		register(alarmMultiblock);
 		register(mobTurretMultiblock);
 		register(smelteryMultiblock);
+		register(netherTurretMultiblock);
 	}
 	
 	@Override
