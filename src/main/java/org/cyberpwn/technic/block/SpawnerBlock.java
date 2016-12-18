@@ -1,5 +1,6 @@
 package org.cyberpwn.technic.block;
 
+import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -739,6 +740,21 @@ public class SpawnerBlock extends ConfigurableController
 				{
 					if(!Nest.getBlock(e.getClickedBlock()).getString("t.s.o").equals(e.getPlayer().getUniqueId().toString()))
 					{
+						try
+						{
+							UUID uid = UUID.fromString(Nest.getBlock(e.getClickedBlock()).getString("t.s.o"));
+							Player p = Bukkit.getPlayer(uid);
+							String name = p.getName();
+							e.setCancelled(true);
+							e.getPlayer().sendMessage(C.RED + name + " owns this spawner");
+							return;
+						}
+						
+						catch(Exception x)
+						{
+							
+						}
+						
 						e.setCancelled(true);
 						e.getPlayer().sendMessage(C.RED + "You do not own this spawner");
 						return;
@@ -803,6 +819,11 @@ public class SpawnerBlock extends ConfigurableController
 					
 					if(l.getBlock().getType().equals(Material.MOB_SPAWNER) && M.r(0.80))
 					{
+						if(Nest.getBlock(l.getBlock()).contains("t.s.o"))
+						{
+							continue;
+						}
+						
 						double speed = getSpeed(l.getBlock());
 						
 						if(speed == 0)
