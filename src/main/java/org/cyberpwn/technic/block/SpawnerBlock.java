@@ -106,6 +106,10 @@ public class SpawnerBlock extends ConfigurableController
 	@Keyed("charge-on-mine")
 	public boolean chargeMines = true;
 	
+	@Comment("Spawner locking and /bs")
+	@Keyed("spawner-locking-feature")
+	public boolean spawnerLocking = true;
+	
 	private SilkUtil s;
 	private GList<Block> mapped;
 	private GMap<Block, Integer> delay;
@@ -404,6 +408,11 @@ public class SpawnerBlock extends ConfigurableController
 	
 	public void onTryBreak(PhantomSender sender, PhantomCommand cmd)
 	{
+		if(!spawnerLocking)
+		{
+			return;
+		}
+		
 		Player p = sender.getPlayer();
 		Location s = p.getLocation().add(0, 1.7, 0);
 		
@@ -423,6 +432,11 @@ public class SpawnerBlock extends ConfigurableController
 	
 	public void tryBreak(Player p, Block b)
 	{
+		if(!spawnerLocking)
+		{
+			return;
+		}
+		
 		if(p.getGameMode().equals(GameMode.SURVIVAL))
 		{
 			if(b.getType().equals(Material.MOB_SPAWNER))
@@ -736,7 +750,7 @@ public class SpawnerBlock extends ConfigurableController
 			
 			if(e.getClickedBlock().getType().equals(Material.MOB_SPAWNER) && e.getAction().equals(Action.LEFT_CLICK_BLOCK))
 			{
-				if(Nest.getBlock(e.getClickedBlock()).contains("t.s.o"))
+				if(Nest.getBlock(e.getClickedBlock()).contains("t.s.o") && spawnerLocking)
 				{
 					if(!Nest.getBlock(e.getClickedBlock()).getString("t.s.o").equals(e.getPlayer().getUniqueId().toString()))
 					{
@@ -819,7 +833,7 @@ public class SpawnerBlock extends ConfigurableController
 					
 					if(l.getBlock().getType().equals(Material.MOB_SPAWNER) && M.r(0.80))
 					{
-						if(Nest.getBlock(l.getBlock()).contains("t.s.o"))
+						if(Nest.getBlock(l.getBlock()).contains("t.s.o") && spawnerLocking)
 						{
 							continue;
 						}
